@@ -1,0 +1,10 @@
+citHeader("The most up-to-date citation information can be found at http://mc-stan.org/citations.html")
+
+citEntry(entry="misc",
+         author=person("Stan Development Team"),
+         title="Stan: A C++ Library for Probability and Sampling",
+         url = "http://mc-stan.org/",
+         year="2015",
+         textVersion=paste("Stan Development Team. (2015).",
+             "Stan: A C++ Library for Probability and Sampling.",
+             "Retrieved from http://mc-stan.org/"))
