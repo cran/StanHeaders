@@ -70,7 +70,9 @@ namespace stan {
 
    // see bare_type_grammar_def.hpp for original
     struct set_val5 {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2>
       struct result<F(T1, T2)> { typedef void type; };
       template <typename T1, typename T2>
@@ -82,7 +84,9 @@ namespace stan {
     boost::phoenix::function<set_val5> set_val5_f;
 
     struct validate_integrate_ode {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3, typename T4>
       struct result<F(T1, T2, T3, T4)> { typedef void type; };
 
@@ -181,7 +185,9 @@ namespace stan {
     boost::phoenix::function<validate_integrate_ode> validate_integrate_ode_f;
 
     struct set_fun_type {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2>
       struct result<F(T1, T2)> { typedef fun type; };
 
@@ -200,7 +206,9 @@ namespace stan {
 
 
     struct set_fun_type_named {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3,
                 typename T4, typename T5>
       struct result<F(T1, T2, T3, T4, T5)> { typedef void type; };
@@ -296,7 +304,9 @@ namespace stan {
     boost::phoenix::function<set_fun_type_named> set_fun_type_named_f;
 
     struct exponentiation_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3,
                 typename T4, typename T5>
       struct result<F(T1, T2, T3, T4, T5)> { typedef void type; };
@@ -331,7 +341,9 @@ namespace stan {
     boost::phoenix::function<exponentiation_expr> exponentiation_f;
 
     struct multiplication_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3>
       struct result<F(T1, T2, T3)> { typedef void type; };
 
@@ -354,16 +366,17 @@ namespace stan {
     };
     boost::phoenix::function<multiplication_expr> multiplication_f;
 
-    void generate_expression(const expression& e, std::ostream& o);
-
     struct division_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3>
       struct result<F(T1, T2, T3)> { typedef void type; };
 
       void operator()(expression& expr1,
                       const expression& expr2,
                       std::ostream& error_msgs) const {
+        static const bool user_facing = true;
         if (expr1.expression_type().is_primitive()
             && expr2.expression_type().is_primitive()
             && (expr1.expression_type().is_primitive_double()
@@ -381,9 +394,9 @@ namespace stan {
           error_msgs << "Warning: integer division"
                      << " implicitly rounds to integer."
                      << " Found int division: ";
-          generate_expression(expr1.expr_, error_msgs);
+          generate_expression(expr1.expr_, user_facing, error_msgs);
           error_msgs << " / ";
-          generate_expression(expr2.expr_, error_msgs);
+          generate_expression(expr2.expr_, user_facing, error_msgs);
           error_msgs << std::endl
                      << " Positive values rounded down,"
                      << " negative values rounded up or down"
@@ -412,7 +425,9 @@ namespace stan {
     boost::phoenix::function<division_expr> division_f;
 
     struct modulus_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3, typename T4>
       struct result<F(T1, T2, T3, T4)> { typedef void type; };
 
@@ -443,7 +458,9 @@ namespace stan {
     boost::phoenix::function<modulus_expr> modulus_f;
 
     struct left_division_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3, typename T4>
       struct result<F(T1, T2, T3, T4)> { typedef void type; };
 
@@ -473,7 +490,9 @@ namespace stan {
     boost::phoenix::function<left_division_expr> left_division_f;
 
     struct elt_multiplication_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3>
       struct result<F(T1, T2, T3)> { typedef void type; };
 
@@ -497,7 +516,9 @@ namespace stan {
     boost::phoenix::function<elt_multiplication_expr> elt_multiplication_f;
 
     struct elt_division_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3>
       struct result<F(T1, T2, T3)> { typedef void type; };
 
@@ -526,7 +547,9 @@ namespace stan {
     // so. Phoenix will be switching to BOOST_TYPEOF. In the meantime,
     // we will use a phoenix::function below:
     struct negate_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3, typename T4>
       struct result<F(T1, T2, T3, T4)> { typedef void type; };
 
@@ -549,7 +572,9 @@ namespace stan {
     boost::phoenix::function<negate_expr> negate_expr_f;
 
     struct logical_negate_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3>
       struct result<F(T1, T2, T3)> { typedef void type; };
 
@@ -572,7 +597,9 @@ namespace stan {
     boost::phoenix::function<logical_negate_expr> logical_negate_expr_f;
 
     struct transpose_expr {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3>
       struct result<F(T1, T2, T3)> { typedef void type; };
 
@@ -600,7 +627,9 @@ namespace stan {
     }
 
     struct add_expression_dimss {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3, typename T4>
       struct result<F(T1, T2, T3, T4)> { typedef void type; };
       void operator()(expression& expression,
@@ -635,7 +664,9 @@ namespace stan {
     boost::phoenix::function<add_expression_dimss> add_expression_dimss_f;
 
     struct set_var_type {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3,
                 typename T4, typename T5>
       struct result<F(T1, T2, T3, T4, T5)> { typedef void type; };
@@ -675,7 +706,9 @@ namespace stan {
     };
     boost::phoenix::function<set_var_type> set_var_type_f;
     struct validate_int_expr3 {
+      //! @cond Doxygen_Suppress
       template <class> struct result;
+      //! @endcond
       template <typename F, typename T1, typename T2, typename T3>
       struct result<F(T1, T2, T3)> { typedef void type; };
 

@@ -1,12 +1,13 @@
-#ifndef STAN_INTERFACE_VAR_CONTEXT_FACTORY_DUMP_FACTORY_HPP
-#define STAN_INTERFACE_VAR_CONTEXT_FACTORY_DUMP_FACTORY_HPP
+#ifndef STAN_INTERFACE_CALLBACKS_VAR_CONTEXT_FACTORY_DUMP_FACTORY_HPP
+#define STAN_INTERFACE_CALLBACKS_VAR_CONTEXT_FACTORY_DUMP_FACTORY_HPP
 
-#include <stan/interface/var_context_factory/var_context_factory.hpp>
+#include <stan/interface_callbacks/var_context_factory/var_context_factory.hpp>
 #include <stan/io/dump.hpp>
 #include <fstream>
+#include <string>
 
 namespace stan {
-  namespace interface {
+  namespace interface_callbacks {
     namespace var_context_factory {
 
       // FIXME: Move to CmdStan
@@ -17,7 +18,8 @@ namespace stan {
                                      std::fstream::in);
 
           if (source_stream.fail()) {
-            std::string message("dump_factory Error: the file " + source + " does not exist.");
+            std::string message("dump_factory Error: the file "
+                                + source + " does not exist.");
             throw std::runtime_error(message);
           }
 

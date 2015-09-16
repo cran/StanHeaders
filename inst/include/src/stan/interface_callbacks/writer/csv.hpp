@@ -1,19 +1,21 @@
-#ifndef STAN_INTERFACE_RECORDER_CSV_HPP
-#define STAN_INTERFACE_RECORDER_CSV_HPP
+#ifndef STAN_INTERFACE_CALLBACKS_WRITER_CSV_HPP
+#define STAN_INTERFACE_CALLBACKS_WRITER_CSV_HPP
 
+#include <stan/interface_callbacks/writer/base_writer.hpp>
 #include <stan/math/prim/scal/meta/index_type.hpp>
 #include <stan/math/prim/arr/meta/index_type.hpp>
 #include <ostream>
-#include <stan/interface/recorder/recorder.hpp>
+#include <string>
+#include <vector>
 
 namespace stan {
-  namespace interface {
-    namespace recorder {
+  namespace interface_callbacks {
+    namespace writer {
 
       /**
        * Writes out a vector as string.
        */
-      class csv: public recorder {
+      class csv: public base_writer {
       private:
         std::ostream *o_;
         const bool has_stream_;
@@ -84,7 +86,7 @@ namespace stan {
          *
          * For this class, returns true if it has a stream.
          */
-        bool is_recording() const {
+        bool is_writing() const {
           return has_stream_;
         }
       };

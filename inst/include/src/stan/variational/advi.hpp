@@ -1,25 +1,20 @@
 #ifndef STAN_VARIATIONAL_ADVI_HPP
 #define STAN_VARIATIONAL_ADVI_HPP
 
-#include <stan/math/prim/scal/err/check_positive.hpp>
-
+#include <stan/math.hpp>
+#include <stan/io/dump.hpp>
 #include <stan/model/util.hpp>
-
 #include <stan/services/io/write_iteration_csv.hpp>
 #include <stan/services/io/write_iteration.hpp>
 #include <stan/services/error_codes.hpp>
-
 #include <stan/variational/families/normal_fullrank.hpp>
 #include <stan/variational/families/normal_meanfield.hpp>
-
-#include <stan/io/dump.hpp>
-
 #include <boost/circular_buffer.hpp>
-#include <ostream>
-#include <limits>
-#include <vector>
-#include <numeric>
 #include <algorithm>
+#include <limits>
+#include <numeric>
+#include <ostream>
+#include <vector>
 
 namespace stan {
 
@@ -94,23 +89,39 @@ namespace stan {
        * @return   evidence lower bound (elbo)
        */
       double calc_ELBO(const Q& variational) const {
+        static const char* function =
+          "stan::variational::advi::calc_ELBO";
+
         double elbo = 0.0;
         int dim = variational.dimension();
+        Eigen::VectorXd zeta(dim);
 
-        Eigen::VectorXd zeta = Eigen::VectorXd::Zero(dim);
-
-        for (int i = 0; i < n_monte_carlo_elbo_; ++i) {
-          // Draw from variational distribution
-          zeta = variational.sample(rng_);
-
-          // Accumulate log probability
-          elbo += (model_.template log_prob<false, true>(zeta, print_stream_));
+        int i = 0;
+        int n_monte_carlo_drop = 0;
+        while (i < n_monte_carlo_elbo_) {
+          variational.sample(rng_, zeta);
+          try {
+            double energy_i = model_.template log_prob<false, true>(zeta,
+              print_stream_);
+            stan::math::check_finite(function, "energy_i", energy_i);
+            elbo += energy_i;
+            i += 1;
+          } catch (std::exception& e) {
+            this->write_error_msg_(print_stream_, e);
+            n_monte_carlo_drop += 1;
+            if (n_monte_carlo_drop >= n_monte_carlo_elbo_) {
+              const char* name = "The number of dropped evaluations";
+              const char* msg1 = "has reached its maximum amount (";
+              int y = n_monte_carlo_elbo_;
+              const char* msg2 = "). Your model may be either severely "
+                "ill-conditioned or misspecified.";
+              stan::math::domain_error(function, name, y, msg1, msg2);
+            }
+          }
         }
 
         // Divide to get Monte Carlo integral estimate
         elbo /= n_monte_carlo_elbo_;
-
-        // Add entropy term
         elbo += variational.entropy();
 
         return elbo;
@@ -119,8 +130,8 @@ namespace stan {
       /**
        * Calculates the "black box" gradient of the ELBO.
        *
-       * @tparam Q         class of variational distribution
-       * @param  elbo_grad gradient of ELBO with respect to variational parameters
+       * @param variational variational distribution
+       * @param elbo_grad gradient of ELBO with respect to variational parameters
        */
       void calc_ELBO_grad(const Q& variational, Q& elbo_grad) const {
         static const char* function =
@@ -141,7 +152,7 @@ namespace stan {
       /**
        * Runs stochastic gradient ascent with Adagrad.
        *
-       * @tparam Q              class of variational distribution
+       * @param  variational    variational distribution
        * @param  tol_rel_obj    relative tolerance parameter for convergence
        * @param  max_iterations max number of iterations to run algorithm
        */
@@ -306,6 +317,10 @@ namespace stan {
 
         // get mean of posterior approximation and write on first output line
         cont_params_ = variational.mean();
+        // This is temporary as lp is not really helpful for variational
+        // inference; furthermore it can be costly to compute.
+        double lp = model_.template log_prob<false, true>(cont_params_,
+          print_stream_);
         std::vector<double> cont_vector(cont_params_.size());
         for (int i = 0; i < cont_params_.size(); ++i)
           cont_vector.at(i) = cont_params_(i);
@@ -313,18 +328,21 @@ namespace stan {
 
         if (out_stream_) {
           services::io::write_iteration(*out_stream_, model_, rng_,
-                                        0.0, cont_vector, disc_vector,
+                                        lp, cont_vector, disc_vector,
                                         print_stream_);
         }
 
         // draw more samples from posterior and write on subsequent lines
         if (out_stream_) {
           for (int n = 0; n < n_posterior_samples_; ++n) {
-            cont_params_ = variational.sample(rng_);
-            for (int i = 0; i < cont_params_.size(); ++i)
+            variational.sample(rng_, cont_params_);
+            double lp = model_.template log_prob<false, true>(cont_params_,
+              print_stream_);
+            for (int i = 0; i < cont_params_.size(); ++i) {
               cont_vector.at(i) = cont_params_(i);
+            }
             services::io::write_iteration(*out_stream_, model_, rng_,
-                          0.0, cont_vector, disc_vector, print_stream_);
+                          lp, cont_vector, disc_vector, print_stream_);
           }
         }
 
@@ -362,6 +380,23 @@ namespace stan {
       std::ostream* print_stream_;
       std::ostream* out_stream_;
       std::ostream* diag_stream_;
+
+      void write_error_msg_(std::ostream* error_msgs,
+                            const std::exception& e) const {
+        if (!error_msgs) {
+          return;
+        }
+
+        *error_msgs
+          << std::endl
+          << "Informational Message: The current sample evaluation "
+          << "of the ELBO is ignored because of the following issue:"
+          << std::endl
+          << e.what() << std::endl
+          << "If this warning occurs often then your model may be "
+          << "either severely ill-conditioned or misspecified."
+          << std::endl;
+      }
     };
   }  // variational
 }  // stan
