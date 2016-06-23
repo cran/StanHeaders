@@ -5,11 +5,11 @@
 #include <stan/mcmc/hmc/hamiltonians/ps_point.hpp>
 
 namespace stan {
-
   namespace mcmc {
-
-    // Point in a phase space with a base
-    // Euclidean manifold with dense metric
+    /**
+     * Point in a phase space with a base
+     * Euclidean manifold with dense metric
+     */
     class dense_e_point: public ps_point {
     public:
       explicit dense_e_point(int n)
@@ -26,11 +26,11 @@ namespace stan {
 
       void
       write_metric(stan::interface_callbacks::writer::base_writer& writer) {
-        writer("# Elements of inverse mass matrix:");
+        writer("Elements of inverse mass matrix:");
         std::stringstream mInv_ss;
         for (int i = 0; i < mInv.rows(); ++i) {
           mInv_ss.str("");
-          mInv_ss << "# " << mInv(i, 0);
+          mInv_ss << mInv(i, 0);
           for (int j = 1; j < mInv.cols(); ++j)
             mInv_ss << ", " << mInv(i, j);
           writer(mInv_ss.str());

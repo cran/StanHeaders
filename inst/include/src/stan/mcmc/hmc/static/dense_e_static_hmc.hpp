@@ -7,27 +7,22 @@
 #include <stan/mcmc/hmc/integrators/expl_leapfrog.hpp>
 
 namespace stan {
-
   namespace mcmc {
-
-    // Hamiltonian Monte Carlo on a
-    // Euclidean manifold with dense metric
-    // and static integration time
-    template <typename Model, class BaseRNG>
+    /**
+     * Hamiltonian Monte Carlo implementation using the endpoint
+     * of trajectories with a static integration time with a
+     * Gaussian-Euclidean disintegration and dense metric
+     */
+    template <class Model, class BaseRNG>
     class dense_e_static_hmc
       : public base_static_hmc<Model, dense_e_metric,
                                expl_leapfrog, BaseRNG> {
     public:
-      dense_e_static_hmc(Model &model, BaseRNG& rng,
-                         std::ostream* o, std::ostream* e)
+      dense_e_static_hmc(const Model& model, BaseRNG& rng)
         : base_static_hmc<Model, dense_e_metric,
-                          expl_leapfrog, BaseRNG>(model, rng, o, e) {
-        this->name_ = "Static HMC with a dense Euclidean metric";
-      }
+                          expl_leapfrog, BaseRNG>(model, rng) { }
     };
 
   }  // mcmc
-
 }  // stan
-
 #endif

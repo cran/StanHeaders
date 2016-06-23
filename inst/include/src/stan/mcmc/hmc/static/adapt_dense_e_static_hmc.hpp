@@ -1,31 +1,36 @@
 #ifndef STAN_MCMC_HMC_STATIC_ADAPT_DENSE_E_STATIC_HMC_HPP
 #define STAN_MCMC_HMC_STATIC_ADAPT_DENSE_E_STATIC_HMC_HPP
 
-#include <stan/mcmc/stepsize_covar_adapter.hpp>
+#include <stan/interface_callbacks/writer/base_writer.hpp>
 #include <stan/mcmc/hmc/static/dense_e_static_hmc.hpp>
+#include <stan/mcmc/stepsize_covar_adapter.hpp>
 
 namespace stan {
-
   namespace mcmc {
-
-    // Hamiltonian Monte Carlo on a
-    // Euclidean manifold with dense metric,
-    // static integration time,
-    // and adaptive stepsize
-    template <typename Model, class BaseRNG>
+    /**
+     * Hamiltonian Monte Carlo implementation using the endpoint
+     * of trajectories with a static integration time with a
+     * Gaussian-Euclidean disintegration and adative dense metric and
+     * adaptive step size
+     */
+    template <class Model, class BaseRNG>
     class adapt_dense_e_static_hmc : public dense_e_static_hmc<Model, BaseRNG>,
                                      public stepsize_covar_adapter {
     public:
-      adapt_dense_e_static_hmc(Model &model, BaseRNG& rng,
-                               std::ostream* o,
-                               std::ostream* e)
-        : dense_e_static_hmc<Model, BaseRNG>(model, rng, o, e),
+      adapt_dense_e_static_hmc(const Model& model, BaseRNG& rng)
+        : dense_e_static_hmc<Model, BaseRNG>(model, rng),
         stepsize_covar_adapter(model.num_params_r()) { }
 
       ~adapt_dense_e_static_hmc() { }
 
-      sample transition(sample& init_sample) {
-        sample s = dense_e_static_hmc<Model, BaseRNG>::transition(init_sample);
+      sample
+      transition(sample& init_sample,
+                 interface_callbacks::writer::base_writer& info_writer,
+                 interface_callbacks::writer::base_writer& error_writer) {
+        sample s
+          = dense_e_static_hmc<Model, BaseRNG>::transition(init_sample,
+                                                           info_writer,
+                                                           error_writer);
 
         if (this->adapt_flag_) {
           this->stepsize_adaptation_.learn_stepsize(this->nom_epsilon_,
@@ -36,7 +41,7 @@ namespace stan {
             (this->z_.mInv, this->z_.q);
 
           if (update) {
-            this->init_stepsize();
+            this->init_stepsize(info_writer, error_writer);
             this->update_L_();
 
             this->stepsize_adaptation_.set_mu(log(10 * this->nom_epsilon_));
@@ -53,7 +58,5 @@ namespace stan {
     };
 
   }  // mcmc
-
 }  // stan
-
 #endif

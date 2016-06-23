@@ -7,33 +7,21 @@
 #include <stan/mcmc/hmc/integrators/expl_leapfrog.hpp>
 
 namespace stan {
-
   namespace mcmc {
-
-    // The No-U-Turn Sampler (NUTS) on a
-    // Euclidean manifold with unit metric
-    template <typename Model, class BaseRNG>
+    /**
+     * The No-U-Turn sampler (NUTS) with multinomial sampling
+     * with a Gaussian-Euclidean disintegration and unit metric
+     */
+    template <class Model, class BaseRNG>
     class unit_e_nuts
       : public base_nuts<Model, unit_e_metric,
                          expl_leapfrog, BaseRNG> {
     public:
-      unit_e_nuts(Model &model, BaseRNG& rng, std::ostream* o,
-                  std::ostream* e)
+      unit_e_nuts(const Model& model, BaseRNG& rng)
         : base_nuts<Model, unit_e_metric, expl_leapfrog,
-                    BaseRNG>(model, rng, o, e) {
-        this->name_ = "NUTS with a unit Euclidean metric";
-      }
-
-      bool compute_criterion(ps_point& start,
-                             unit_e_point& finish,
-                             Eigen::VectorXd& rho) {
-        return finish.p.dot(rho - finish.p) > 0
-               && start.p.dot(rho - start.p) > 0;
-      }
+                    BaseRNG>(model, rng) { }
     };
 
   }  // mcmc
-
 }  // stan
-
 #endif
