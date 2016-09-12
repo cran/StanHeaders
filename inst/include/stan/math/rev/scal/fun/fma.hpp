@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stan/math/rev/core.hpp>
 #include <stan/math/prim/scal/fun/constants.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <stan/math/prim/scal/fun/is_nan.hpp>
 #include <stan/math/prim/scal/meta/likely.hpp>
 #include <valarray>
 #include <limits>
@@ -27,9 +27,9 @@ namespace stan {
                       avi, bvi, cvi) {
         }
         void chain() {
-          if (unlikely(boost::math::isnan(avi_->val_)
-                       || boost::math::isnan(bvi_->val_)
-                       || boost::math::isnan(cvi_->val_))) {
+          if (unlikely(is_nan(avi_->val_)
+                       || is_nan(bvi_->val_)
+                       || is_nan(cvi_->val_))) {
             avi_->adj_ = std::numeric_limits<double>::quiet_NaN();
             bvi_->adj_ = std::numeric_limits<double>::quiet_NaN();
             cvi_->adj_ = std::numeric_limits<double>::quiet_NaN();
@@ -48,9 +48,9 @@ namespace stan {
                       avi, bvi, c) {
         }
         void chain() {
-          if (unlikely(boost::math::isnan(avi_->val_)
-                       || boost::math::isnan(bvi_->val_)
-                       || boost::math::isnan(cd_))) {
+          if (unlikely(is_nan(avi_->val_)
+                       || is_nan(bvi_->val_)
+                       || is_nan(cd_))) {
             avi_->adj_ = std::numeric_limits<double>::quiet_NaN();
             bvi_->adj_ = std::numeric_limits<double>::quiet_NaN();
           } else {
@@ -67,9 +67,9 @@ namespace stan {
                       avi, b, cvi) {
         }
         void chain() {
-          if (unlikely(boost::math::isnan(avi_->val_)
-                       || boost::math::isnan(cvi_->val_)
-                       || boost::math::isnan(bd_))) {
+          if (unlikely(is_nan(avi_->val_)
+                       || is_nan(cvi_->val_)
+                       || is_nan(bd_))) {
             avi_->adj_ = std::numeric_limits<double>::quiet_NaN();
             cvi_->adj_ = std::numeric_limits<double>::quiet_NaN();
           } else {
@@ -86,9 +86,9 @@ namespace stan {
                       avi, b, c) {
         }
         void chain() {
-          if (unlikely(boost::math::isnan(avi_->val_)
-                       || boost::math::isnan(bd_)
-                       || boost::math::isnan(cd_)))
+          if (unlikely(is_nan(avi_->val_)
+                       || is_nan(bd_)
+                       || is_nan(cd_)))
             avi_->adj_ = std::numeric_limits<double>::quiet_NaN();
           else
             avi_->adj_ += adj_ * bd_;
@@ -102,9 +102,9 @@ namespace stan {
                       a, b, cvi) {
         }
         void chain() {
-          if (unlikely(boost::math::isnan(cvi_->val_)
-                       || boost::math::isnan(ad_)
-                       || boost::math::isnan(bd_)))
+          if (unlikely(is_nan(cvi_->val_)
+                       || is_nan(ad_)
+                       || is_nan(bd_)))
             cvi_->adj_ = std::numeric_limits<double>::quiet_NaN();
           else
             cvi_->adj_ += adj_;
@@ -133,9 +133,9 @@ namespace stan {
      * @param c Summand.
      * @return Product of the multiplicands plus the summand, ($a * $b) + $c.
      */
-    inline var fma(const stan::math::var& a,
-                   const stan::math::var& b,
-                   const stan::math::var& c) {
+    inline var fma(const var& a,
+                   const var& b,
+                   const var& c) {
       return var(new fma_vvv_vari(a.vi_, b.vi_, c.vi_));
     }
 
@@ -158,9 +158,9 @@ namespace stan {
      * @param c Summand.
      * @return Product of the multiplicands plus the summand, ($a * $b) + $c.
      */
-    inline var fma(const stan::math::var& a,
-                   const stan::math::var& b,
-                   const double& c) {
+    inline var fma(const var& a,
+                   const var& b,
+                   double c) {
       return var(new fma_vvd_vari(a.vi_, b.vi_, c));
     }
 
@@ -183,9 +183,9 @@ namespace stan {
      * @param c Summand.
      * @return Product of the multiplicands plus the summand, ($a * $b) + $c.
      */
-    inline var fma(const stan::math::var& a,
-                   const double& b,
-                   const stan::math::var& c) {
+    inline var fma(const var& a,
+                   double b,
+                   const var& c) {
       return var(new fma_vdv_vari(a.vi_, b, c.vi_));
     }
 
@@ -206,9 +206,9 @@ namespace stan {
      * @param c Summand.
      * @return Product of the multiplicands plus the summand, ($a * $b) + $c.
      */
-    inline var fma(const stan::math::var& a,
-                   const double& b,
-                   const double& c) {
+    inline var fma(const var& a,
+                   double b,
+                   double c) {
       return var(new fma_vdd_vari(a.vi_, b, c));
     }
 
@@ -229,9 +229,9 @@ namespace stan {
      * @param c Summand.
      * @return Product of the multiplicands plus the summand, ($a * $b) + $c.
      */
-    inline var fma(const double& a,
-                   const stan::math::var& b,
-                   const double& c) {
+    inline var fma(double a,
+                   const var& b,
+                   double c) {
       return var(new fma_vdd_vari(b.vi_, a, c));
     }
 
@@ -252,9 +252,9 @@ namespace stan {
      * @param c Summand.
      * @return Product of the multiplicands plus the summand, ($a * $b) + $c.
      */
-    inline var fma(const double& a,
-                   const double& b,
-                   const stan::math::var& c) {
+    inline var fma(double a,
+                   double b,
+                   const var& c) {
       return var(new fma_ddv_vari(a, b, c.vi_));
     }
 
@@ -277,9 +277,9 @@ namespace stan {
      * @param c Summand.
      * @return Product of the multiplicands plus the summand, ($a * $b) + $c.
      */
-    inline var fma(const double& a,
-                   const stan::math::var& b,
-                   const stan::math::var& c) {
+    inline var fma(double a,
+                   const var& b,
+                   const var& c) {
       return var(new fma_vdv_vari(b.vi_, a, c.vi_));  // a-b symmetry
     }
 

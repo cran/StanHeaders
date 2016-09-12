@@ -12,7 +12,6 @@
 #include <sstream>
 
 namespace stan {
-
   namespace math {
     /**
      * Return <code>true</code> if the specified matrix is positive definite
@@ -41,7 +40,7 @@ namespace stan {
       check_positive_size(function, name, "rows", y.rows());
 
       if (y.rows() == 1 && !(y(0, 0) >= 0.0))
-        domain_error(function, name, y, "is not positive semi-definite: ");
+        domain_error(function, name, "is not positive semi-definite.", "");
 
       using Eigen::LDLT;
       using Eigen::Matrix;
@@ -50,7 +49,7 @@ namespace stan {
         = value_of_rec(y).ldlt();
       if (cholesky.info() != Eigen::Success
           || (cholesky.vectorD().array() < 0.0).any())
-        domain_error(function, name, y, "is not positive semi-definite:\n");
+        domain_error(function, name, "is not positive semi-definite.", "");
       check_not_nan(function, name, y);
       return true;
     }

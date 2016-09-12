@@ -2,11 +2,10 @@
 #define STAN_MATH_FWD_CORE_FVAR_HPP
 
 #include <stan/math/prim/scal/meta/likely.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <stan/math/prim/scal/fun/is_nan.hpp>
 #include <ostream>
 
 namespace stan {
-
   namespace math {
 
     template <typename T>
@@ -28,7 +27,7 @@ namespace stan {
       // TV and TD must be assignable to T
       template <typename TV, typename TD>
       fvar(const TV& val, const TD& deriv) : val_(val), d_(deriv) {
-        if (unlikely(boost::math::isnan(val)))
+        if (unlikely(is_nan(val)))
           d_ = val;
       }
 
@@ -36,10 +35,9 @@ namespace stan {
       template <typename TV>
       fvar(const TV& val)  // NOLINT
         : val_(val), d_(0.0) {
-        if (unlikely(boost::math::isnan(val)))
+        if (unlikely(is_nan(val)))
           d_ = val;
       }
-
 
       inline
       fvar<T>&
@@ -86,8 +84,6 @@ namespace stan {
         d_ *= x2;
         return *this;
       }
-
-      // SPEEDUP: specialize for T2 == var with d_ function
 
       inline
       fvar<T>&

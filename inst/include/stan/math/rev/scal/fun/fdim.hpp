@@ -2,7 +2,7 @@
 #define STAN_MATH_REV_SCAL_FUN_FDIM_HPP
 
 #include <stan/math/rev/core.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <stan/math/prim/scal/fun/is_nan.hpp>
 #include <stan/math/prim/scal/meta/likely.hpp>
 #include <limits>
 
@@ -16,8 +16,8 @@ namespace stan {
           op_vv_vari(avi->val_ - bvi->val_, avi, bvi) {
         }
         void chain() {
-          if (unlikely(boost::math::isnan(avi_->val_)
-                       || boost::math::isnan(bvi_->val_))) {
+          if (unlikely(is_nan(avi_->val_)
+                       || is_nan(bvi_->val_))) {
             avi_->adj_ = std::numeric_limits<double>::quiet_NaN();
             bvi_->adj_ = std::numeric_limits<double>::quiet_NaN();
           } else {
@@ -33,8 +33,8 @@ namespace stan {
           op_vd_vari(avi->val_ - b, avi, b) {
         }
         void chain() {
-          if (unlikely(boost::math::isnan(avi_->val_)
-                       || boost::math::isnan(bd_)))
+          if (unlikely(is_nan(avi_->val_)
+                       || is_nan(bd_)))
             avi_->adj_ = std::numeric_limits<double>::quiet_NaN();
           else
             avi_->adj_ += adj_;
@@ -47,8 +47,8 @@ namespace stan {
           op_dv_vari(a - bvi->val_, a, bvi) {
         }
         void chain() {
-          if (unlikely(boost::math::isnan(bvi_->val_)
-                       || boost::math::isnan(ad_)))
+          if (unlikely(is_nan(bvi_->val_)
+                       || is_nan(ad_)))
             bvi_->adj_ = std::numeric_limits<double>::quiet_NaN();
           else
             bvi_->adj_ -= adj_;
@@ -60,7 +60,7 @@ namespace stan {
      * Return the positive difference between the first variable's the value
      * and the second's (C99).
      *
-     * See stan::math::fdim() for the double-based version.
+     * See fdim() for the double-based version.
      *
      * The partial derivative with respect to the first argument is
      *
@@ -107,8 +107,8 @@ namespace stan {
      * @return The positive difference between the first and second
      * variable.
      */
-    inline var fdim(const stan::math::var& a,
-                    const stan::math::var& b) {
+    inline var fdim(const var& a,
+                    const var& b) {
       if (!(a.vi_->val_ <= b.vi_->val_))
         return var(new fdim_vv_vari(a.vi_, b.vi_));
       else
@@ -132,8 +132,8 @@ namespace stan {
      * @return The positive difference between the first and second
      * arguments.
      */
-    inline var fdim(const double& a,
-                    const stan::math::var& b) {
+    inline var fdim(double a,
+                    const var& b) {
       return a <= b.vi_->val_
         ? var(new vari(0.0))
         : var(new fdim_dv_vari(a, b.vi_));
@@ -155,8 +155,8 @@ namespace stan {
      * @param b Second variable.
      * @return The positive difference between the first and second arguments.
      */
-    inline var fdim(const stan::math::var& a,
-                    const double& b) {
+    inline var fdim(const var& a,
+                    double b) {
       return a.vi_->val_ <= b
         ? var(new vari(0.0))
         : var(new fdim_vd_vari(a.vi_, b));
