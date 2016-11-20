@@ -1,4 +1,4 @@
-b3caae07f9b498c4579b91c4acb0f29c *DESCRIPTION
+a83b4cdb7dc57ef6022f821bfd9cf7dc *DESCRIPTION
 d0561533c97f86b981d022df89c5ed97 *LICENSE
 48b7d7e44ac3420c53fee23d6fe074fa *NAMESPACE
 b7652eaeaef8edb49c1cfda045f4d835 *inst/CITATION
@@ -45,7 +45,7 @@ c73f8fe23634ef1413ab1c46d8098c26 *inst/include/src/stan/io/validate_zero_buf.hpp
 e980776870ebedb004bc1190cfdf3501 *inst/include/src/stan/io/var_context.hpp
 0049b4528f81115e07b73f99e16748ac *inst/include/src/stan/io/writer.hpp
 879c64f1bedc4a066f49171b27c1c974 *inst/include/src/stan/lang/ast.hpp
-f97ed66d3c4635f617ad037fefd137cb *inst/include/src/stan/lang/ast_def.cpp
+f0b5e77fc6c3766b5de10a669760ee9c *inst/include/src/stan/lang/ast_def.cpp
 67d0e85fc8c2688fe004aeb595a28cfd *inst/include/src/stan/lang/compiler.hpp
 57c205639608150b902ce023ae855824 *inst/include/src/stan/lang/function_signatures.h
 5338b92165a2d6f205eb568679ebbab2 *inst/include/src/stan/lang/generator.hpp
