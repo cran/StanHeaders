@@ -1,7 +1,7 @@
 /*
  * -----------------------------------------------------------------
- * $Revision: 4500 $
- * $Date: 2015-05-21 16:29:49 -0700 (Thu, 21 May 2015) $
+ * $Revision: 4895 $
+ * $Date: 2016-09-05 16:57:24 -0700 (Mon, 05 Sep 2016) $
  * ----------------------------------------------------------------- 
  * Programmer(s): Aaron Collier and Radu Serban @ LLNL
  * -----------------------------------------------------------------
@@ -15,7 +15,7 @@
  */
 
 /* Define SUNDIALS version number */
-#define SUNDIALS_PACKAGE_VERSION "2.6.2"
+#define SUNDIALS_PACKAGE_VERSION "2.7.0"
 
 /* FCMIX: Define Fortran name-mangling macro for C identifiers.
  * Depending on the inferred scheme, one of the following six
@@ -65,6 +65,7 @@
  *     #define SUNDIALS_SUPERLUMT 
  */
 /* #undef SUNDIALS_SUPERLUMT */
+/* #undef SUNDIALS_SUPERLUMT_THREAD_TYPE */
 
 /* KLU available
  * If working libraries for KLU support were found, then
