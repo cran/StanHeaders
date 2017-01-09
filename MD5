@@ -1,4 +1,4 @@
-7ce274c0c99752decdb5339db9b59079 *DESCRIPTION
+545719ef6810a3fe2ad4945e9c500f57 *DESCRIPTION
 d0561533c97f86b981d022df89c5ed97 *LICENSE
 48b7d7e44ac3420c53fee23d6fe074fa *NAMESPACE
 81eb4ea929fce28f2734d7c4b2c1939b *inst/CITATION
@@ -717,7 +717,7 @@ edd7c439a7477484c1eb613902bfedc1 *inst/include/stan/math/prim/mat/err/check_unit
 4861fd6175d59f643c6b83b2b1f26a17 *inst/include/stan/math/prim/mat/err/constraint_tolerance.hpp
 255487389929b3e832ff76b82eeba2e4 *inst/include/stan/math/prim/mat/err/validate_non_negative_index.hpp
 f3caf1997b89520474efb6c49fa2b6c5 *inst/include/stan/math/prim/mat/fun/Eigen.hpp
-101be2d83d10b8ac3ae02f6588a964e7 *inst/include/stan/math/prim/mat/fun/LDLT_factor.hpp
+b55a7cf2214ad52727712ac37be5ecfc *inst/include/stan/math/prim/mat/fun/LDLT_factor.hpp
 fb7aad903fa4e784248f6a1b7945199f *inst/include/stan/math/prim/mat/fun/MatrixExponential.h
 1fab5abd9d054d4012aa00d6a4730a5e *inst/include/stan/math/prim/mat/fun/Phi.hpp
 131512d78e68bbb617517e1005e5892e *inst/include/stan/math/prim/mat/fun/Phi_approx.hpp
