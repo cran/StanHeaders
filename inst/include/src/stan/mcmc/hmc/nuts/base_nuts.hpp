@@ -1,7 +1,7 @@
 #ifndef STAN_MCMC_HMC_NUTS_BASE_NUTS_HPP
 #define STAN_MCMC_HMC_NUTS_BASE_NUTS_HPP
 
-#include <stan/interface_callbacks/writer/base_writer.hpp>
+#include <stan/callbacks/writer.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <stan/math/prim/scal.hpp>
 #include <stan/mcmc/hmc/base_hmc.hpp>
@@ -43,8 +43,8 @@ namespace stan {
 
       sample
       transition(sample& init_sample,
-                 interface_callbacks::writer::base_writer& info_writer,
-                 interface_callbacks::writer::base_writer& error_writer) {
+                 callbacks::writer& info_writer,
+                 callbacks::writer& error_writer) {
         // Initialize the algorithm
         this->sample_stepsize();
 
@@ -67,7 +67,7 @@ namespace stan {
         double log_sum_weight = 0;  // log(exp(H0 - H0))
         double H0 = this->hamiltonian_.H(this->z_);
         int n_leapfrog = 0;
-        double sum_metro_prob = 1;  // exp(H0 - H0)
+        double sum_metro_prob = 0;
 
         // Build a trajectory until the NUTS criterion is no longer satisfied
         this->depth_ = 0;
@@ -128,7 +128,7 @@ namespace stan {
         // Compute average acceptance probabilty across entire trajectory,
         // even over subtrees that may have been rejected
         double accept_prob
-          = sum_metro_prob / static_cast<double>(n_leapfrog + 1);
+          = sum_metro_prob / static_cast<double>(n_leapfrog);
 
         this->z_.ps_point::operator=(z_sample);
         this->energy_ = this->hamiltonian_.H(this->z_);
@@ -182,8 +182,8 @@ namespace stan {
                       Eigen::VectorXd& rho,
                       double H0, double sign, int& n_leapfrog,
                       double& log_sum_weight, double& sum_metro_prob,
-                      interface_callbacks::writer::base_writer& info_writer,
-                      interface_callbacks::writer::base_writer& error_writer) {
+                      callbacks::writer& info_writer,
+                      callbacks::writer& error_writer) {
         // Base case
         if (depth == 0) {
           this->integrator_.evolve(this->z_, this->hamiltonian_,

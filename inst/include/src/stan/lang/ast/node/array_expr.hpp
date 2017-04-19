@@ -2,7 +2,7 @@
 #define STAN_LANG_AST_NODE_ARRAY_EXPR_HPP
 
 #include <stan/lang/ast/expr_type.hpp>
-#include <stan/lang/ast/var_origin.hpp>
+#include <stan/lang/ast/scope.hpp>
 #include <stan/lang/ast/node/expression.hpp>
 #include <vector>
 
@@ -33,11 +33,10 @@ namespace stan {
       bool has_var_;
 
       /**
-       * Origin of this array expression.
+       * Scope of this array expression.
        *
        */
-      // TODO(carpenter): rename to "array_expr_origin_"
-      var_origin var_origin_;
+      scope array_expr_scope_;
 
       /**
        * Construct a default array expression.
@@ -50,15 +49,7 @@ namespace stan {
        *
        * @param args sequence of arguments
        */
-      array_expr(const std::vector<expression>& args);  // NOLINT
-
-      /**
-       * Assign specified array expression to this array expression.
-       *
-       * @param al new array expression value
-       * @return reference to value
-       */
-      array_expr& operator=(const array_expr& al);
+      explicit array_expr(const std::vector<expression>& args);
     };
 
   }

@@ -61,10 +61,23 @@ namespace stan {
       return false;
     }
 
+    bool has_non_param_var_vis::operator()(const matrix_expr& e) const {
+      for (size_t i = 0; i < e.args_.size(); ++i)
+        if (boost::apply_visitor(*this, e.args_[i].expr_))
+          return true;
+      return false;
+    }
+
+    bool has_non_param_var_vis::operator()(const row_vector_expr& e) const {
+      for (size_t i = 0; i < e.args_.size(); ++i)
+        if (boost::apply_visitor(*this, e.args_[i].expr_))
+          return true;
+      return false;
+    }
+
     bool has_non_param_var_vis::operator()(const variable& e) const {
-      var_origin vo = var_map_.get_origin(e.name_);
-      return vo == transformed_parameter_origin
-        || vo == local_origin;
+      scope var_scope = var_map_.get_scope(e.name_);
+      return var_scope.tpar();
     }
 
     bool has_non_param_var_vis::operator()(const integrate_ode& e) const {

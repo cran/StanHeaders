@@ -306,55 +306,7 @@ void SetToZero(DlsMat A)
 
 void PrintMat(DlsMat A)
 {
-  long int i, j, start, finish;
-  realtype **a;
-
-  switch (A->type) {
-
-  case SUNDIALS_DENSE:
-
-    printf("\n");
-    for (i=0; i < A->M; i++) {
-      for (j=0; j < A->N; j++) {
-#if defined(SUNDIALS_EXTENDED_PRECISION)
-        printf("%12Lg  ", DENSE_ELEM(A,i,j));
-#elif defined(SUNDIALS_DOUBLE_PRECISION)
-        printf("%12g  ", DENSE_ELEM(A,i,j));
-#else
-        printf("%12g  ", DENSE_ELEM(A,i,j));
-#endif
-      }
-      printf("\n");
-    }
-    printf("\n");
-    
-    break;
-
-  case SUNDIALS_BAND:
-
-    a = A->cols;
-    printf("\n");
-    for (i=0; i < A->N; i++) {
-      start = SUNMAX(0,i-A->ml);
-      finish = SUNMIN(A->N-1,i+A->mu);
-      for (j=0; j < start; j++) printf("%12s  ","");
-      for (j=start; j <= finish; j++) {
-#if defined(SUNDIALS_EXTENDED_PRECISION)
-        printf("%12Lg  ", a[j][i-j+A->s_mu]);
-#elif defined(SUNDIALS_DOUBLE_PRECISION)
-        printf("%12g  ", a[j][i-j+A->s_mu]);
-#else
-        printf("%12g  ", a[j][i-j+A->s_mu]);
-#endif
-      }
-      printf("\n");
-    }
-    printf("\n");
-    
-    break;
-
-  }
-
+  // Deleted to avoid warning from R CMD check
 }
 
 
