@@ -37,7 +37,7 @@ namespace stan {
        * declared as a parameter, transformed parameter, or local
        * variable. 
        */
-      bool has_var_;
+      bool has_var_ = false;
 
       /**
        * Scope of this conditional operator expression.
