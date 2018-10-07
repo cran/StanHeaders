@@ -8,6 +8,8 @@
 #include <stan/lang/ast/node/break_continue_statement.hpp>
 #include <stan/lang/ast/node/conditional_statement.hpp>
 #include <stan/lang/ast/node/for_statement.hpp>
+#include <stan/lang/ast/node/for_array_statement.hpp>
+#include <stan/lang/ast/node/for_matrix_statement.hpp>
 #include <stan/lang/ast/node/statement.hpp>
 #include <stan/lang/ast/node/statements.hpp>
 #include <stan/lang/ast/node/return_statement.hpp>
@@ -28,19 +30,7 @@ namespace stan {
       return false;
     }
 
-    bool returns_type_vis::operator()(const assignment& st) const {
-      error_msgs_ << "Expecting return, found assignment statement."
-                  << std::endl;
-      return false;
-    }
-
     bool returns_type_vis::operator()(const assgn& st) const {
-      error_msgs_ << "Expecting return, found assignment statement."
-                  << std::endl;
-      return false;
-    }
-
-    bool returns_type_vis::operator()(const compound_assignment& st) const {
       error_msgs_ << "Expecting return, found assignment statement."
                   << std::endl;
       return false;
@@ -99,7 +89,17 @@ namespace stan {
       return returns_type(return_type_, st.statement_, error_msgs_);
     }
 
-    bool returns_type_vis::operator()(const while_statement& st) const  {
+    bool returns_type_vis::operator()(const for_array_statement& st) const  {
+      // body must end in appropriate return
+      return returns_type(return_type_, st.statement_, error_msgs_);
+    }
+
+    bool returns_type_vis::operator()(const for_matrix_statement& st) const  {
+      // body must end in appropriate return
+      return returns_type(return_type_, st.statement_, error_msgs_);
+    }
+
+     bool returns_type_vis::operator()(const while_statement& st) const  {
       // body must end in appropriate return
       return returns_type(return_type_, st.body_, error_msgs_);
     }
@@ -107,7 +107,7 @@ namespace stan {
     bool returns_type_vis::operator()(const break_continue_statement& st)
       const  {
       // break/continue OK only as end of nested loop in void return
-      bool pass = (return_type_ == VOID_T);
+      bool pass = (return_type_.is_void());
       if (!pass)
         error_msgs_ << "statement " << st.generate_
                     << " does not match return type";
@@ -130,7 +130,7 @@ namespace stan {
 
     bool returns_type_vis::operator()(const return_statement& st) const  {
       // return checked for type
-      return return_type_ == VOID_T
+      return return_type_.is_void()
         || is_assignable(return_type_, st.return_value_.expression_type(),
                          "Returned expression does not match return type",
                          error_msgs_);

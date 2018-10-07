@@ -1,17 +1,10 @@
-Copyright (c) 2002-2016, Lawrence Livermore National Security. 
-Produced at the Lawrence Livermore National Laboratory.
-Written by A.C. Hindmarsh, D.R. Reynolds, R. Serban, C.S. Woodward,
-S.D. Cohen, A.G. Taylor, S. Peles, L.E. Banks, and D. Shumaker.
-LLNL-CODE-667205    (ARKODE)
-UCRL-CODE-155951    (CVODE)
-UCRL-CODE-155950    (CVODES)
-UCRL-CODE-155952    (IDA)
-UCRL-CODE-237203    (IDAS)
-LLNL-CODE-665877    (KINSOL)
+Copyright (c) 2002-2015, Lawrence Livermore National Security. 
+Produced at the Lawrence Livermore National Laboratory 
+Written by A.C. Hindmarsh and R. Serban.
+UCRL-CODE-155950
 All rights reserved. 
 
-This file is part of SUNDIALS.  For details, 
-see http://computation.llnl.gov/projects/sundials
+This file is part of CVODES.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
