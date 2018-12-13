@@ -1,11 +1,11 @@
-477856117b870ffda60eadfe13cf8696 *DESCRIPTION
+593ec8f811173232803f76edd4316ef3 *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 48b7d7e44ac3420c53fee23d6fe074fa *NAMESPACE
 a09fa47259e33134a883a1b1e65783da *build/vignette.rds
 fd9dbfcf415970ed367a443a7d4dbb6a *inst/CITATION
 cda9213c466e74fb12b8a0ed1d06757f *inst/doc/stanmath.R
 d7018eeba81c22b325018b18d03f37c3 *inst/doc/stanmath.Rmd
-50a31b1f7b84d012c35c9f1d6af55cd8 *inst/doc/stanmath.html
+11313f167b3e05e8f4a014cba54ab246 *inst/doc/stanmath.html
 d5dc6323e53c2f02ab92ef7be3406ccf *inst/include/cvodes/cvodes.h
 e6de1dc98a8f293eae3da4ed12c94860 *inst/include/cvodes/cvodes_bandpre.h
 982a887d111776e97e8ca3f9b1af81e3 *inst/include/cvodes/cvodes_bbdpre.h
@@ -799,7 +799,7 @@ c3f15f7bc70b8f223c6dc60f59f274b5 *inst/include/stan/math/prim/arr/fun/sum.hpp
 c4db86108a0c18eb267cf66b9926e56e *inst/include/stan/math/prim/arr/fun/value_of_rec.hpp
 09a26f54b7735c164cb62805becef242 *inst/include/stan/math/prim/arr/functor/coupled_ode_observer.hpp
 b55d922de73e73a80b9b2a1198dc61d7 *inst/include/stan/math/prim/arr/functor/coupled_ode_system.hpp
-c63269371452b72184f50d01384ca18c *inst/include/stan/math/prim/arr/functor/integrate_1d.hpp
+2167b22be468d8bc212a5b0bddb08cbe *inst/include/stan/math/prim/arr/functor/integrate_1d.hpp
 f5c034e533206193c5c2c1082f7c1f4c *inst/include/stan/math/prim/arr/functor/integrate_ode_rk45.hpp
 1c2966c7ba08f4f33d1aefb24fab053d *inst/include/stan/math/prim/arr/functor/mpi_cluster.hpp
 e8780290b1552836154456d292b25659 *inst/include/stan/math/prim/arr/functor/mpi_cluster_inst.cpp
@@ -1562,7 +1562,7 @@ ec83b6104076b4b5e7d3c418cf53472b *inst/include/stan/math/rev/arr.hpp
 7af5d7d9822643c47ffcbda72029d707 *inst/include/stan/math/rev/arr/fun/sum.hpp
 15b67864fe5d1f3a8f085197b198259b *inst/include/stan/math/rev/arr/fun/to_var.hpp
 f25198b32f4506ded110b2d6534a5aa5 *inst/include/stan/math/rev/arr/functor/coupled_ode_system.hpp
-9c5ccd1190776cf236422bbce3a39baa *inst/include/stan/math/rev/arr/functor/integrate_1d.hpp
+ee1c082cb6456c13344c91966e534df7 *inst/include/stan/math/rev/arr/functor/integrate_1d.hpp
 4a6e4859388381bbc5c7f7726bd1694a *inst/include/stan/math/rev/core.hpp
 eef91ad89157767b206bb35a0dcde7a4 *inst/include/stan/math/rev/core/autodiffstackstorage.hpp
 8a9c16a3141554c4e783f9b2c87ec9aa *inst/include/stan/math/rev/core/chainable_alloc.hpp
