@@ -1,11 +1,11 @@
-593ec8f811173232803f76edd4316ef3 *DESCRIPTION
+cb85d297bfc2e3834709ba56ff5b6a89 *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 48b7d7e44ac3420c53fee23d6fe074fa *NAMESPACE
-a09fa47259e33134a883a1b1e65783da *build/vignette.rds
-fd9dbfcf415970ed367a443a7d4dbb6a *inst/CITATION
+8e7d2466a12dfcf73eec2aa488004fbd *build/vignette.rds
+e9f78e5345e51406c9d103952c5407e3 *inst/CITATION
 cda9213c466e74fb12b8a0ed1d06757f *inst/doc/stanmath.R
-d7018eeba81c22b325018b18d03f37c3 *inst/doc/stanmath.Rmd
-11313f167b3e05e8f4a014cba54ab246 *inst/doc/stanmath.html
+f03c4002471e098eab27126ba33f0d19 *inst/doc/stanmath.Rmd
+ce047fbaccf610cdddaffb26e42e1017 *inst/doc/stanmath.html
 d5dc6323e53c2f02ab92ef7be3406ccf *inst/include/cvodes/cvodes.h
 e6de1dc98a8f293eae3da4ed12c94860 *inst/include/cvodes/cvodes_bandpre.h
 982a887d111776e97e8ca3f9b1af81e3 *inst/include/cvodes/cvodes_bbdpre.h
@@ -598,7 +598,7 @@ d8319ade5d0bb72b829fb70908875ca7 *inst/include/src/stan/variational/advi.hpp
 559bdab0cf842ac1cd8cdeae1dcb282a *inst/include/src/stan/variational/families/normal_fullrank.hpp
 1e68161f902f10f407d07497287f3ab9 *inst/include/src/stan/variational/families/normal_meanfield.hpp
 abbca2ae1b172f0a784cd85426172aaf *inst/include/src/stan/variational/print_progress.hpp
-3521a5f1d1906690c39581291c16867d *inst/include/src/stan/version.hpp
+e007da51733e2857ced93bb487dd4fb6 *inst/include/src/stan/version.hpp
 f4b3c635b658faed84e43bc7337a7ffc *inst/include/stan/math.hpp
 112dee6c6259b10f23d9071299c2527a *inst/include/stan/math/fwd/arr.hpp
 996b4e4870b80d33392f608cbd201cc4 *inst/include/stan/math/fwd/arr/fun/log_sum_exp.hpp
@@ -799,7 +799,7 @@ c3f15f7bc70b8f223c6dc60f59f274b5 *inst/include/stan/math/prim/arr/fun/sum.hpp
 c4db86108a0c18eb267cf66b9926e56e *inst/include/stan/math/prim/arr/fun/value_of_rec.hpp
 09a26f54b7735c164cb62805becef242 *inst/include/stan/math/prim/arr/functor/coupled_ode_observer.hpp
 b55d922de73e73a80b9b2a1198dc61d7 *inst/include/stan/math/prim/arr/functor/coupled_ode_system.hpp
-2167b22be468d8bc212a5b0bddb08cbe *inst/include/stan/math/prim/arr/functor/integrate_1d.hpp
+c63269371452b72184f50d01384ca18c *inst/include/stan/math/prim/arr/functor/integrate_1d.hpp
 f5c034e533206193c5c2c1082f7c1f4c *inst/include/stan/math/prim/arr/functor/integrate_ode_rk45.hpp
 1c2966c7ba08f4f33d1aefb24fab053d *inst/include/stan/math/prim/arr/functor/mpi_cluster.hpp
 e8780290b1552836154456d292b25659 *inst/include/stan/math/prim/arr/functor/mpi_cluster_inst.cpp
@@ -1055,7 +1055,7 @@ e11540e7ef2db2b1f08e6a2b0ea92d8b *inst/include/stan/math/prim/mat/functor/finite
 aac581d238adc4fc010145024d3906c6 *inst/include/stan/math/prim/mat/functor/finite_diff_hessian.hpp
 0694c582a321963a8a53712afa80dcec *inst/include/stan/math/prim/mat/functor/map_rect.hpp
 a0b6a56b5659aff939ff3eebe1eee73a *inst/include/stan/math/prim/mat/functor/map_rect_combine.hpp
-31db1b23a75227a999977b086605f2fb *inst/include/stan/math/prim/mat/functor/map_rect_concurrent.hpp
+41ee1d42cdb1fe360a3cce20d5d0c608 *inst/include/stan/math/prim/mat/functor/map_rect_concurrent.hpp
 a21caf683cbb505c8d26fc0155d3ca00 *inst/include/stan/math/prim/mat/functor/map_rect_mpi.hpp
 ae861cf0590bbaf9744f3bd209d7769b *inst/include/stan/math/prim/mat/functor/map_rect_reduce.hpp
 a1778f96b6b1f82ccaf270aac4a0a794 *inst/include/stan/math/prim/mat/functor/mpi_parallel_call.hpp
@@ -1562,7 +1562,7 @@ ec83b6104076b4b5e7d3c418cf53472b *inst/include/stan/math/rev/arr.hpp
 7af5d7d9822643c47ffcbda72029d707 *inst/include/stan/math/rev/arr/fun/sum.hpp
 15b67864fe5d1f3a8f085197b198259b *inst/include/stan/math/rev/arr/fun/to_var.hpp
 f25198b32f4506ded110b2d6534a5aa5 *inst/include/stan/math/rev/arr/functor/coupled_ode_system.hpp
-ee1c082cb6456c13344c91966e534df7 *inst/include/stan/math/rev/arr/functor/integrate_1d.hpp
+9c5ccd1190776cf236422bbce3a39baa *inst/include/stan/math/rev/arr/functor/integrate_1d.hpp
 4a6e4859388381bbc5c7f7726bd1694a *inst/include/stan/math/rev/core.hpp
 eef91ad89157767b206bb35a0dcde7a4 *inst/include/stan/math/rev/core/autodiffstackstorage.hpp
 8a9c16a3141554c4e783f9b2c87ec9aa *inst/include/stan/math/rev/core/chainable_alloc.hpp
@@ -1778,7 +1778,7 @@ eb944db2fcc395eab94e38888b67c97e *inst/include/stan/math/rev/scal/meta/ad_promot
 295486b98be2734a7b76bf037c05fa05 *inst/include/stan/math/rev/scal/meta/is_var.hpp
 0ebaea975c60d89017961de4daaf6568 *inst/include/stan/math/rev/scal/meta/operands_and_partials.hpp
 9804ee523dd20db1a2a6346447c0a69e *inst/include/stan/math/rev/scal/meta/partials_type.hpp
-669c49e39bf580ea9e08ba2f7d49847c *inst/include/stan/math/version.hpp
+87d77de7a37c0011fe33fd91334859ea *inst/include/stan/math/version.hpp
 413abde4628a518eb05427914d2690da *inst/include/stan_sundials_printf_override.hpp
 acae14a926808e18bcc75b45e16a3d4e *inst/include/sundials/sundials_band.h
 2e8897d790f7c2f2294e1794133b349c *inst/include/sundials/sundials_config.h
@@ -1974,4 +1974,4 @@ d52d867cf7d98aede0c9dc80495727c4 *src/sunmat_sparse/fsunmatrix_sparse.c
 ea9aa25599f2f2c652726d73a115d571 *src/sunmat_sparse/fsunmatrix_sparse.h
 c5bfa5eb39bcfa0140c6fc9372676c3a *src/sunmat_sparse/sunmatrix_sparse.c
 e46b88e76bce2ea8289027009408c5df *vignettes/stan-functions.txt
-d7018eeba81c22b325018b18d03f37c3 *vignettes/stanmath.Rmd
+f03c4002471e098eab27126ba33f0d19 *vignettes/stanmath.Rmd
