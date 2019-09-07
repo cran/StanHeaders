@@ -1,12 +1,12 @@
-fb199954a3b2dea89a49417d005d48c1 *DESCRIPTION
+7e3012b7b340ff9a3a9b9a96b53c7459 *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 48b7d7e44ac3420c53fee23d6fe074fa *NAMESPACE
 992e38efd1803e0f6ea432c86ea55a6d *build/vignette.rds
-fd9dbfcf415970ed367a443a7d4dbb6a *inst/CITATION
+072bed4c4ea2f333de19768e03719935 *inst/CITATION
 d9f299a822d38c4fd8a3eb612ba4bbfd *inst/doc/sparselm_stan.hpp
 12fcd647bfdcce0deb2f40cabe3163ab *inst/doc/stanmath.R
-9a0e6e3197551eb64335b2cf8934cebf *inst/doc/stanmath.Rmd
-ed27abea4013a66550ce22d18bd13e2f *inst/doc/stanmath.html
+c9b9e53d4b8752e9e773b41000ea11a6 *inst/doc/stanmath.Rmd
+415abc9ef3c785e522d72f2741fc9d77 *inst/doc/stanmath.html
 62deff229f361611808284733482dc7f *inst/include/cvodes/cvodes.h
 9fd560a0e6b868e04325aa420e25ce7b *inst/include/cvodes/cvodes_bandpre.h
 af6852524cc04a541dedf2cffcb096a9 *inst/include/cvodes/cvodes_bbdpre.h
@@ -939,7 +939,7 @@ d6d388bdb8b8aeca658f5afde8ee022e *inst/include/stan/math/prim/mat/err/is_cholesk
 503ef02e7003d9c03c71fd5599763a75 *inst/include/stan/math/prim/mat/err/is_column_index.hpp
 cba4db9be04b563fe911987e75c8b059 *inst/include/stan/math/prim/mat/err/is_corr_matrix.hpp
 cb6ae6d6637a56ba8ebc2eb50439d101 *inst/include/stan/math/prim/mat/err/is_ldlt_factor.hpp
-198e09e09e58350ffb53f56db7c098db *inst/include/stan/math/prim/mat/err/is_lower_triangular.hpp
+81d654300fe7dbb1440ff74cb1e2d4f8 *inst/include/stan/math/prim/mat/err/is_lower_triangular.hpp
 a035799de4704c6d0044a69c72664e69 *inst/include/stan/math/prim/mat/err/is_mat_finite.hpp
 556ae8a8bc6c5a9a7c48e39cee38e4d9 *inst/include/stan/math/prim/mat/err/is_matching_dims.hpp
 48a000f93c21d78603b051aea88f14aa *inst/include/stan/math/prim/mat/err/is_pos_definite.hpp
@@ -2117,4 +2117,4 @@ db903c2e1252893ca96eed15c095f41c *src/sunnonlinsol/newton/fsunnonlinsol_newton.c
 4d3d4f0fc8930cfc00c728d461534c5c *src/sunnonlinsol/newton/sunnonlinsol_newton.c
 eba5beaa5a8401fcc3a9b59c53a9721d *tests/rstan.R
 d9f299a822d38c4fd8a3eb612ba4bbfd *vignettes/sparselm_stan.hpp
-9a0e6e3197551eb64335b2cf8934cebf *vignettes/stanmath.Rmd
+c9b9e53d4b8752e9e773b41000ea11a6 *vignettes/stanmath.Rmd
