@@ -7,8 +7,7 @@ Sys.setenv(USE_CXX14 = "1")
 set.seed(12345)
 
 ## -----------------------------------------------------------------------------
-Sys.setenv(PKG_CXXFLAGS = paste(StanHeaders:::CxxFlags(as_character = TRUE), 
-                                "-I", system.file("include", package = "RcppParallel", mustWork = TRUE)))
+Sys.setenv(PKG_CXXFLAGS = StanHeaders:::CxxFlags(as_character = TRUE))
 SH <- system.file(ifelse(.Platform$OS.type == "windows", "libs", "lib"), .Platform$r_arch,
                   package = "StanHeaders", mustWork = TRUE)
 Sys.setenv(PKG_LIBS = paste0(StanHeaders:::LdFlags(as_character = TRUE),

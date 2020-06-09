@@ -1,14 +1,14 @@
-935b6bd0d8331d2eee90ea48132f637f *DESCRIPTION
+4b84434abe496ab91933fd301b85890c *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
-e71959e6dcad32ce8b40f2b27206a5b9 *NAMESPACE
-09904d6f0feba5f6430dcf2e95d06ca1 *R/Flags.R
+d6f9e6252e40bfde5692d28b7d60efc9 *NAMESPACE
+bc4790f6ffe69b0b7c333e7fab61d7b5 *R/Flags.R
 b994479bb5f817cc30ba25a854951d40 *R/zzz.R
 1bef644bc37ebb8b292bcd744defa266 *build/vignette.rds
 fd9dbfcf415970ed367a443a7d4dbb6a *inst/CITATION
 d9f299a822d38c4fd8a3eb612ba4bbfd *inst/doc/sparselm_stan.hpp
-7ad141416b9125c8530d804aa438df7d *inst/doc/stanmath.R
-84990f549671539fd473b61a6ca1be43 *inst/doc/stanmath.Rmd
-862909d66abf30570183a109d26e6bd7 *inst/doc/stanmath.html
+41029041abdfabcdbdf8f0e6fe31b272 *inst/doc/stanmath.R
+912cfddfdb1e9adcbdb814d4372968c0 *inst/doc/stanmath.Rmd
+92501c65a9a94f8955c627bb765eee7b *inst/doc/stanmath.html
 62deff229f361611808284733482dc7f *inst/include/cvodes/cvodes.h
 9fd560a0e6b868e04325aa420e25ce7b *inst/include/cvodes/cvodes_bandpre.h
 af6852524cc04a541dedf2cffcb096a9 *inst/include/cvodes/cvodes_bbdpre.h
@@ -2218,4 +2218,4 @@ db903c2e1252893ca96eed15c095f41c *src/sunnonlinsol/newton/fsunnonlinsol_newton.c
 4d3d4f0fc8930cfc00c728d461534c5c *src/sunnonlinsol/newton/sunnonlinsol_newton.c
 eba5beaa5a8401fcc3a9b59c53a9721d *tests/rstan.R
 d9f299a822d38c4fd8a3eb612ba4bbfd *vignettes/sparselm_stan.hpp
-84990f549671539fd473b61a6ca1be43 *vignettes/stanmath.Rmd
+912cfddfdb1e9adcbdb814d4372968c0 *vignettes/stanmath.Rmd

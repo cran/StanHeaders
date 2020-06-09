@@ -12,7 +12,7 @@
 
 <meta name="author" content="Stan Development Team" />
 
-<meta name="date" content="2020-05-28" />
+<meta name="date" content="2020-06-09" />
 
 <title>Using the Stan Math C++ Library</title>
 
@@ -301,26 +301,25 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Using the Stan Math C++ Library</h1>
 <h4 class="author">Stan Development Team</h4>
-<h4 class="date">2020-05-28</h4>
+<h4 class="date">2020-06-09</h4>
 
 
 
 <div id="using-the-stanheaders-package-from-other-r-packages" class="section level1">
 <h1>Using the <strong>StanHeaders</strong> Package from Other R Packages</h1>
 <p>The <strong>StanHeaders</strong> package contains no R functions. To use the Stan Math Library in other packages, it is often sufficient to specify</p>
-<pre><code>LinkingTo: StanHeaders (&gt;= 2.21.0), RcppParallel (&gt;= 4.4.4)</code></pre>
+<pre><code>LinkingTo: StanHeaders (&gt;= 2.21.0), RcppParallel (&gt;= 5.0.1)</code></pre>
 <p>in the DESCRIPTION file of another package and put something like</p>
 <pre><code>CXX_STD = CXX14
-PKG_CXXFLAGS = `&quot;${R_HOME}/bin/Rscript&quot; -e &quot;RcppParallel::CxxFlags()&quot;` \
-               `&quot;${R_HOME}/bin/Rscript&quot; -e &quot;StanHeaders:::CxxFlags()&quot;`
-PKG_LIBS = `&quot;${R_HOME}/bin/Rscript&quot; -e &quot;RcppParallel::LdFlags()&quot;` \
-           `&quot;${R_HOME}/bin/Rscript&quot; -e &quot;StanHeaders:::LdFlags()&quot;`</code></pre>
-<p>in the src/Makevars and src/Makevars.win files. If, in addition, the other package needs to utilize the MCMC, optimization, variational inference, or parsing facilities of the Stan Library, then it is also necessary to include the <code>src</code> directory of <strong>StanHeaders</strong> in the other package’s <code>PKG_CXXFLAGS</code> in the src/Makevars and src/Makevars.win files with something like</p>
+PKG_CXXFLAGS = $(shell &quot;$(R_HOME)/bin$(R_ARCH_BIN)/Rscript&quot; -e &quot;RcppParallel::CxxFlags()&quot;) \
+               $(shell &quot;$(R_HOME)/bin$(R_ARCH_BIN)/Rscript&quot; -e &quot;StanHeaders:::CxxFlags()&quot;)
+PKG_LIBS = $(shell &quot;$(R_HOME)/bin$(R_ARCH_BIN)/Rscript&quot; -e &quot;RcppParallel::RcppParallelLibs()&quot;) \
+           $(shell &quot;$(R_HOME)/bin$(R_ARCH_BIN)/Rscript&quot; -e &quot;StanHeaders:::LdFlags()&quot;)</code></pre>
+<p>in the src/Makevars and src/Makevars.win files and put <code>GNU make</code> in the <code>SystemRequirements:</code> field of the package’s DESCRIPTION file. If, in addition, the other package needs to utilize the MCMC, optimization, variational inference, or parsing facilities of the Stan Library, then it is also necessary to include the <code>src</code> directory of <strong>StanHeaders</strong> in the other package’s <code>PKG_CXXFLAGS</code> in the src/Makevars and src/Makevars.win files with something like</p>
 <pre><code>STANHEADERS_SRC = $(shell &quot;$(R_HOME)/bin$(R_ARCH_BIN)/Rscript&quot; -e &quot;message()&quot; \
   -e &quot;cat(system.file('include', 'src', package = 'StanHeaders', mustWork = TRUE))&quot; \
   -e &quot;message()&quot; | grep &quot;StanHeaders&quot;)
 PKG_CXXFLAGS += -I&quot;$(STANHEADERS_SRC)&quot;</code></pre>
-<p>and put <code>GNU make</code> in the <code>SystemRequirements:</code> field of the package’s DESCRIPTION file.</p>
 </div>
 <div id="using-higher-order-functions-in-the-stanheaders-package" class="section level1">
 <h1>Using Higher-Order Functions in the <strong>StanHeaders</strong> Package</h1>
@@ -328,13 +327,12 @@ PKG_CXXFLAGS += -I&quot;$(STANHEADERS_SRC)&quot;</code></pre>
 <div id="derivatives-and-minimization" class="section level2">
 <h2>Derivatives and Minimization</h2>
 <p>The following is a toy example of using the Stan Math library via <code>Rcpp::sourceCpp</code>: to minimize the function <span class="math display">\[\left(\mathbf{x} - \mathbf{a}\right)^\top \left(\mathbf{x} - \mathbf{a}\right)\]</span> which has a global minimum when <span class="math inline">\(\mathbf{x} = \mathbf{a}\)</span>. To find this minimum with autodifferentiation, we need to define the objective function. Then, its gradient with respect to <span class="math inline">\(\mathbf{x}\)</span>, which we know is <span class="math inline">\(2\left(\mathbf{x} - \mathbf{a}\right)\)</span> in this case, can be calculated by autodifferentiation. At the optimum (or on the way to the optimum), we might want to evaluate the Hessian matrix, which we know is <span class="math inline">\(2\mathbf{I}\)</span>, but would need an additional function to evaluate it via autodifferentiation. Finally, one could reconceptualize the problem as solving a homogeneous system of equations where the gradient is set equal to a vector of zeros. The <code>stan::math::algebra_solver</code> function can solve such a system using autodifferentiation to obtain the Jacobian, which we know to be the identity matrix in this case.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">Sys.setenv</span>(<span class="dt">PKG_CXXFLAGS =</span> <span class="kw">paste</span>(StanHeaders<span class="op">:::</span><span class="kw">CxxFlags</span>(<span class="dt">as_character =</span> <span class="ot">TRUE</span>), </a>
-<a class="sourceLine" id="cb4-2" title="2">                                <span class="st">&quot;-I&quot;</span>, <span class="kw">system.file</span>(<span class="st">&quot;include&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;RcppParallel&quot;</span>, <span class="dt">mustWork =</span> <span class="ot">TRUE</span>)))</a>
-<a class="sourceLine" id="cb4-3" title="3">SH &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="kw">ifelse</span>(.Platform<span class="op">$</span>OS.type <span class="op">==</span><span class="st"> &quot;windows&quot;</span>, <span class="st">&quot;libs&quot;</span>, <span class="st">&quot;lib&quot;</span>), .Platform<span class="op">$</span>r_arch,</a>
-<a class="sourceLine" id="cb4-4" title="4">                  <span class="dt">package =</span> <span class="st">&quot;StanHeaders&quot;</span>, <span class="dt">mustWork =</span> <span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb4-5" title="5"><span class="kw">Sys.setenv</span>(<span class="dt">PKG_LIBS =</span> <span class="kw">paste0</span>(StanHeaders<span class="op">:::</span><span class="kw">LdFlags</span>(<span class="dt">as_character =</span> <span class="ot">TRUE</span>),</a>
-<a class="sourceLine" id="cb4-6" title="6">                             <span class="st">&quot; -L&quot;</span>, <span class="kw">shQuote</span>(SH), <span class="st">&quot; -lStanHeaders&quot;</span>))</a>
-<a class="sourceLine" id="cb4-7" title="7">                            </a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">Sys.setenv</span>(<span class="dt">PKG_CXXFLAGS =</span> StanHeaders<span class="op">:::</span><span class="kw">CxxFlags</span>(<span class="dt">as_character =</span> <span class="ot">TRUE</span>))</a>
+<a class="sourceLine" id="cb4-2" title="2">SH &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="kw">ifelse</span>(.Platform<span class="op">$</span>OS.type <span class="op">==</span><span class="st"> &quot;windows&quot;</span>, <span class="st">&quot;libs&quot;</span>, <span class="st">&quot;lib&quot;</span>), .Platform<span class="op">$</span>r_arch,</a>
+<a class="sourceLine" id="cb4-3" title="3">                  <span class="dt">package =</span> <span class="st">&quot;StanHeaders&quot;</span>, <span class="dt">mustWork =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb4-4" title="4"><span class="kw">Sys.setenv</span>(<span class="dt">PKG_LIBS =</span> <span class="kw">paste0</span>(StanHeaders<span class="op">:::</span><span class="kw">LdFlags</span>(<span class="dt">as_character =</span> <span class="ot">TRUE</span>),</a>
+<a class="sourceLine" id="cb4-5" title="5">                             <span class="st">&quot; -L&quot;</span>, <span class="kw">shQuote</span>(SH), <span class="st">&quot; -lStanHeaders&quot;</span>))</a>
+<a class="sourceLine" id="cb4-6" title="6">                            </a></code></pre></div>
 <p>Here is C++ code that does all of the above, except for the part of finding the optimum, which is done using the R function <code>optim</code> below.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb5-1" title="1"><span class="co">// [[Rcpp::depends(BH)]]</span></a>
 <a class="sourceLine" id="cb5-2" title="2"><span class="co">// [[Rcpp::depends(RcppEigen)]]</span></a>
@@ -654,7 +652,7 @@ public: // these would ordinarily be private in the C++ code generated by Stan
 <a class="sourceLine" id="cb14-19" title="19">                                             <span class="dt">package =</span> <span class="st">&quot;StanHeaders&quot;</span>, <span class="dt">mustWork =</span> <span class="ot">TRUE</span>)))</a>
 <a class="sourceLine" id="cb14-20" title="20"><span class="kw">sourceCpp</span>(tf)</a>
 <a class="sourceLine" id="cb14-21" title="21">sparselm_stan</a>
-<a class="sourceLine" id="cb14-22" title="22"><span class="co">#&gt; C++ class 'sparselm_stan' &lt;0x55d30a1f2480&gt;</span></a>
+<a class="sourceLine" id="cb14-22" title="22"><span class="co">#&gt; C++ class 'sparselm_stan' &lt;0x55d576b50470&gt;</span></a>
 <a class="sourceLine" id="cb14-23" title="23"><span class="co">#&gt; Constructors:</span></a>
 <a class="sourceLine" id="cb14-24" title="24"><span class="co">#&gt;     sparselm_stan(Eigen::Map&lt;Eigen::SparseMatrix&lt;double, 0, int&gt;, 0, Eigen::Stride&lt;0, 0&gt; &gt;, Eigen::Matrix&lt;double, -1, 1, 0, -1, 1&gt;)</span></a>
 <a class="sourceLine" id="cb14-25" title="25"><span class="co">#&gt; </span></a>
