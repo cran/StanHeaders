@@ -58,6 +58,19 @@ stanFunction <- function(function_name, ..., env = parent.frame(), rebuild = FAL
               pattern = "hpp$")
   incl <- setdiff(incl, "core.hpp")
   incl <- paste0("#include <stan/math/prim/", incl, ">")
+  if (grepl("_rng$", function_name)) {
+    create_rng <- system.file("include", "src", "stan", "services", "util", "create_rng.hpp",
+                              package = "StanHeaders", mustWork = TRUE)
+    op <- options("useFancyQuotes")
+    options(useFancyQuotes = FALSE)
+    on.exit(options(useFancyQuotes = op))
+    incl <- c(incl, paste0('#include ', dQuote(create_rng)))
+    code <- sub(") {", ", const int random_seed = 0) {", code, fixed = TRUE)
+    code <- sub(" return ", 
+                "boost::ecuyer1988 base_rng__ = stan::services::util::create_rng(random_seed, 0); return ",
+                code)
+      code <- sub("); }", ", base_rng__); }", code, fixed = TRUE)
+  }
   old_USE_CXX14 <- Sys.getenv("USE_CXX14")
   on.exit(Sys.setenv(USE_CXX14 = old_USE_CXX14))
   Sys.setenv(USE_CXX14 = "1")
@@ -65,6 +78,11 @@ stanFunction <- function(function_name, ..., env = parent.frame(), rebuild = FAL
                     includes = incl, env = env, rebuild = rebuild, 
                     cacheDir = cacheDir,
                     showOutput = showOutput, verbose = verbose)
+  if (grepl("_rng$", function_name)) {
+    fun <- get(function_name, envir = env, mode = "function")
+    formals(fun)$random_seed <- quote(sample.int(.Machine$integer.max, size = 1L))
+    assign(function_name, value = fun, envir = env)
+  }
   return(do.call(function_name, args = DOTS, envir = env))
 }
 

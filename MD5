@@ -1,14 +1,14 @@
-0d855f03ec14a6bcc20c7e9d135ab473 *DESCRIPTION
+055a503b0d99a2ce3f28e639b7e68063 *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 c154f76504a2c135d15e3a5a519e6034 *NAMESPACE
-bc4790f6ffe69b0b7c333e7fab61d7b5 *R/Flags.R
-b521bed70602faa938ad0e083c6cd630 *R/stanFunction.R
+76b04b76663f19ce7ff1a44fad25f892 *R/Flags.R
+d3b9c840b94ace97f0e25e79587d3468 *R/stanFunction.R
 1bef644bc37ebb8b292bcd744defa266 *build/vignette.rds
 916f334f1d0f848682950a9322536443 *inst/CITATION
 d9f299a822d38c4fd8a3eb612ba4bbfd *inst/doc/sparselm_stan.hpp
 00d8fe61c284a23b22ecb51e99976aff *inst/doc/stanmath.R
 d9e4def70bfef3a9124fe4edd9179a2d *inst/doc/stanmath.Rmd
-5922225b81290e15d02f2268bf0105c9 *inst/doc/stanmath.html
+077976d8832748f0f33e3266fb39371f *inst/doc/stanmath.html
 62deff229f361611808284733482dc7f *inst/include/cvodes/cvodes.h
 9fd560a0e6b868e04325aa420e25ce7b *inst/include/cvodes/cvodes_bandpre.h
 af6852524cc04a541dedf2cffcb096a9 *inst/include/cvodes/cvodes_bbdpre.h
@@ -1830,7 +1830,7 @@ a0efd3024251d0a58796e5818b6f8a98 *inst/include/stan/math/rev/core/vari.hpp
 952a30d361a54309ea957986771ec38f *inst/include/stan/math/rev/core/vvd_vari.hpp
 17f0e806bbbb7d1c5c45ed4d2758de50 *inst/include/stan/math/rev/core/vvv_vari.hpp
 921f428e03144759ca4db46e9fe251a9 *inst/include/stan/math/rev/mat.hpp
-5ed5184621622363a79aa3b9c03d3876 *inst/include/stan/math/rev/mat/fun/Eigen_NumTraits.hpp
+835db23646c1918cbf8b47ece831a391 *inst/include/stan/math/rev/mat/fun/Eigen_NumTraits.hpp
 d3221b23ede6b5a5ac3bc90890d20aa1 *inst/include/stan/math/rev/mat/fun/LDLT_alloc.hpp
 2d52dff107f34482a437ade82952a5e7 *inst/include/stan/math/rev/mat/fun/LDLT_factor.hpp
 a6fd5e96d82495ad3c9c8635a501d65d *inst/include/stan/math/rev/mat/fun/cholesky_decompose.hpp
@@ -2049,7 +2049,7 @@ ac073a0c898a564a3fd15f7813122b41 *inst/include/sunlinsol/sunlinsol_sptfqmr.h
 4cfffcdd7b0ac4a10120bc25de2a8390 *inst/include/sunnonlinsol/sunnonlinsol_fixedpoint.h
 53c2c30209a13a421e82ba62bd7857b9 *inst/include/sunnonlinsol/sunnonlinsol_newton.h
 ea5e3433950f612f657da746ebfddef0 *man/CxxFlags.Rd
-0146a724ae1cbbfb9ee9fa9959250c4a *man/stanFunction.Rd
+1543f396354b61b30e2ceea1c96c2187 *man/stanFunction.Rd
 1416931241eded93a1a7892d608e13a2 *src/Makevars
 775d01b2d4f7cd65f488621f9901b873 *src/Makevars.win
 bb1a34994e56bfa40202c6c2eab17fd6 *src/cvodes/LICENSE
