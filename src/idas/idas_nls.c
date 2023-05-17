@@ -2,7 +2,7 @@
  * Programmer(s): David J. Gardner @ LLNL
  * -----------------------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2019, Lawrence Livermore National Security
+ * Copyright (c) 2002-2020, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -28,9 +28,8 @@
 
 /* private functions passed to nonlinear solver */
 static int idaNlsResidual(N_Vector ycor, N_Vector res, void* ida_mem);
-static int idaNlsLSetup(N_Vector ycor, N_Vector res, booleantype jbad,
-                        booleantype* jcur, void* ida_mem);
-static int idaNlsLSolve(N_Vector ycor, N_Vector delta, void* ida_mem);
+static int idaNlsLSetup(booleantype jbad, booleantype* jcur, void* ida_mem);
+static int idaNlsLSolve(N_Vector delta, void* ida_mem);
 static int idaNlsConvTest(SUNNonlinearSolver NLS, N_Vector ycor, N_Vector del,
                           realtype tol, N_Vector ewt, void* ida_mem);
 
@@ -60,11 +59,9 @@ int IDASetNonlinearSolver(void *ida_mem, SUNNonlinearSolver NLS)
   }
 
   /* check for required nonlinear solver functions */
-  if ( NLS->ops->gettype    == NULL ||
-       NLS->ops->initialize == NULL ||
-       NLS->ops->solve      == NULL ||
-       NLS->ops->free       == NULL ||
-       NLS->ops->setsysfn   == NULL ) {
+  if ( NLS->ops->gettype  == NULL ||
+       NLS->ops->solve    == NULL ||
+       NLS->ops->setsysfn == NULL ) {
     IDAProcessError(IDA_mem, IDA_ILL_INPUT, "IDAS",
                     "IDASetNonlinearSolver",
                     "NLS does not support required operations");
@@ -100,7 +97,7 @@ int IDASetNonlinearSolver(void *ida_mem, SUNNonlinearSolver NLS)
   }
 
   /* set convergence test function */
-  retval = SUNNonlinSolSetConvTestFn(IDA_mem->NLS, idaNlsConvTest);
+  retval = SUNNonlinSolSetConvTestFn(IDA_mem->NLS, idaNlsConvTest, ida_mem);
   if (retval != IDA_SUCCESS) {
     IDAProcessError(IDA_mem, IDA_ILL_INPUT, "IDAS",
                     "IDASetNonlinearSolver",
@@ -116,6 +113,39 @@ int IDASetNonlinearSolver(void *ida_mem, SUNNonlinearSolver NLS)
                     "Setting maximum number of nonlinear iterations failed");
     return(IDA_ILL_INPUT);
   }
+
+  return(IDA_SUCCESS);
+}
+
+
+/*---------------------------------------------------------------
+  IDAGetNonlinearSystemData:
+
+  This routine provides access to the relevant data needed to
+  compute the nonlinear system function.
+  ---------------------------------------------------------------*/
+int IDAGetNonlinearSystemData(void *ida_mem, realtype *tcur, N_Vector *yypred,
+                              N_Vector *yppred, N_Vector *yyn, N_Vector *ypn,
+                              N_Vector *res, realtype *cj, void **user_data)
+{
+  IDAMem IDA_mem;
+
+  if (ida_mem == NULL) {
+    IDAProcessError(NULL, IDA_MEM_NULL, "IDAS", "IDAGetNonlinearSystemData",
+                    MSG_NO_MEM);
+    return(IDA_MEM_NULL);
+  }
+
+  IDA_mem = (IDAMem) ida_mem;
+
+  *tcur      = IDA_mem->ida_tn;
+  *yypred    = IDA_mem->ida_yypredict;
+  *yppred    = IDA_mem->ida_yppredict;
+  *yyn       = IDA_mem->ida_yy;
+  *ypn       = IDA_mem->ida_yp;
+  *res       = IDA_mem->ida_savres;
+  *cj        = IDA_mem->ida_cj;
+  *user_data = IDA_mem->ida_user_data;
 
   return(IDA_SUCCESS);
 }
@@ -166,8 +196,7 @@ int idaNlsInit(IDAMem IDA_mem)
 }
 
 
-static int idaNlsLSetup(N_Vector ycor, N_Vector res, booleantype jbad,
-                        booleantype* jcur, void* ida_mem)
+static int idaNlsLSetup(booleantype jbad, booleantype* jcur, void* ida_mem)
 {
   IDAMem IDA_mem;
   int retval;
@@ -181,17 +210,18 @@ static int idaNlsLSetup(N_Vector ycor, N_Vector res, booleantype jbad,
   IDA_mem->ida_nsetups++;
   IDA_mem->ida_forceSetup = SUNFALSE;
 
-  retval = IDA_mem->ida_lsetup(IDA_mem, IDA_mem->ida_yy, IDA_mem->ida_yp, res,
-                               IDA_mem->ida_tempv1, IDA_mem->ida_tempv2, IDA_mem->ida_tempv3);
+  retval = IDA_mem->ida_lsetup(IDA_mem, IDA_mem->ida_yy, IDA_mem->ida_yp,
+                               IDA_mem->ida_savres, IDA_mem->ida_tempv1,
+                               IDA_mem->ida_tempv2, IDA_mem->ida_tempv3);
 
   /* update Jacobian status */
   *jcur = SUNTRUE;
 
   /* update convergence test constants */
-  IDA_mem->ida_cjold = IDA_mem->ida_cj;
+  IDA_mem->ida_cjold   = IDA_mem->ida_cj;
   IDA_mem->ida_cjratio = ONE;
-  IDA_mem->ida_ss = TWENTY;
-  IDA_mem->ida_ssS = TWENTY;
+  IDA_mem->ida_ss      = TWENTY;
+  IDA_mem->ida_ssS     = TWENTY;
 
   if (retval < 0) return(IDA_LSETUP_FAIL);
   if (retval > 0) return(IDA_LSETUP_RECVR);
@@ -200,7 +230,7 @@ static int idaNlsLSetup(N_Vector ycor, N_Vector res, booleantype jbad,
 }
 
 
-static int idaNlsLSolve(N_Vector ycor, N_Vector delta, void* ida_mem)
+static int idaNlsLSolve(N_Vector delta, void* ida_mem)
 {
   IDAMem IDA_mem;
   int retval;
@@ -211,7 +241,8 @@ static int idaNlsLSolve(N_Vector ycor, N_Vector delta, void* ida_mem)
   }
   IDA_mem = (IDAMem) ida_mem;
 
-  retval = IDA_mem->ida_lsolve(IDA_mem, delta, IDA_mem->ida_ewt, IDA_mem->ida_yy, IDA_mem->ida_yp,
+  retval = IDA_mem->ida_lsolve(IDA_mem, delta, IDA_mem->ida_ewt,
+                               IDA_mem->ida_yy, IDA_mem->ida_yp,
                                IDA_mem->ida_savres);
 
   if (retval < 0) return(IDA_LSOLVE_FAIL);

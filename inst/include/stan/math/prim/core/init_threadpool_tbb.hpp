@@ -1,11 +1,14 @@
 #ifndef STAN_MATH_PRIM_CORE_INIT_THREADPOOL_TBB_HPP
 #define STAN_MATH_PRIM_CORE_INIT_THREADPOOL_TBB_HPP
 
-#include <stan/math/prim/scal/err/invalid_argument.hpp>
+#include <stan/math/prim/err/invalid_argument.hpp>
 
 #include <boost/lexical_cast.hpp>
 
-#ifdef STAN_THREADS
+#ifdef TBB_INTERFACE_NEW
+#include <tbb/global_control.h>
+#include <tbb/task_arena.h>
+#else
 #include <tbb/task_scheduler_init.h>
 #endif
 
@@ -61,6 +64,35 @@ inline int get_num_threads() {
 
 }  // namespace internal
 
+#ifdef TBB_INTERFACE_NEW
+/**
+ * Initialize the Intel TBB threadpool and global scheduler through
+ * the tbb::global_control object. In case an instance of the
+ * tbb::task_scheduler_object has been instantiated prior to calling
+ * this function, then any subsequent initialization is ignored by the
+ * Intel TBB.
+ *
+ * The maximal number of threads is read from the environment variable
+ * STAN_NUM_THREADS using internal::get_num_threads. See conventions
+ * of get_num_threads. The TBB scheduler will be activated by calling
+ * this function.
+ *
+ * The function returns a reference to the static
+ * tbb::global_control instance.
+ *
+ * @return reference to the static tbb::global_control
+ * @throws std::runtime_error if the value of STAN_NUM_THREADS env. variable
+ * is invalid
+ */
+inline tbb::global_control& init_threadpool_tbb() {
+  int tbb_max_threads = internal::get_num_threads();
+
+  static tbb::global_control tbb_scheduler(
+      tbb::global_control::max_allowed_parallelism, tbb_max_threads);
+
+  return tbb_scheduler;
+}
+#else
 /**
  * Initialize the Intel TBB threadpool and global scheduler through
  * the tbb::task_scheduler_init object. In case an instance of the
@@ -82,7 +114,6 @@ inline int get_num_threads() {
  * @throws std::runtime_error if the value of STAN_NUM_THREADS env. variable
  * is invalid
  */
-#ifdef STAN_THREADS
 inline tbb::task_scheduler_init& init_threadpool_tbb(
     tbb::stack_size_type stack_size = 0) {
   int tbb_max_threads = internal::get_num_threads();

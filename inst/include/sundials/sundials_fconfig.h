@@ -48,4 +48,4 @@ parameter (SUNINDEXTYPE=8)
 !          .false.  (communicator must be MPI_COMM_WORLD)
 !
 logical SUNDIALS_MPI_COMM_F2C
-parameter (SUNDIALS_MPI_COMM_F2C=.false.)
+parameter (SUNDIALS_MPI_COMM_F2C=.true.)

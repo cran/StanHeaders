@@ -1,9 +1,9 @@
-/* ----------------------------------------------------------------- 
+/* -----------------------------------------------------------------
  * Programmer(s): Scott D. Cohen, Alan C. Hindmarsh, Radu Serban,
  *                and Aaron Collier @ LLNL
  * -----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2019, Lawrence Livermore National Security
+ * Copyright (c) 2002-2020, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -21,8 +21,8 @@
  *     found in the header file sundials_nvector.h.
  *
  *   - The definition of the type realtype can be found in the
- *     header file sundials_types.h, and it may be changed (at the 
- *     configuration stage) according to the user's needs. 
+ *     header file sundials_types.h, and it may be changed (at the
+ *     configuration stage) according to the user's needs.
  *     The sundials_types.h file also contains the definition
  *     for the type booleantype.
  *
@@ -49,7 +49,7 @@ extern "C" {
 
 /*
  * -----------------------------------------------------------------
- * Parallel implementation of N_Vector               
+ * Parallel implementation of N_Vector
  * -----------------------------------------------------------------
  */
 
@@ -90,24 +90,24 @@ typedef struct _N_VectorContent_Parallel *N_VectorContent_Parallel;
  * -----------------------------------------------------------------
  */
 
-SUNDIALS_EXPORT N_Vector N_VNew_Parallel(MPI_Comm comm, 
+SUNDIALS_EXPORT N_Vector N_VNew_Parallel(MPI_Comm comm,
                                          sunindextype local_length,
                                          sunindextype global_length);
 
-SUNDIALS_EXPORT N_Vector N_VNewEmpty_Parallel(MPI_Comm comm, 
+SUNDIALS_EXPORT N_Vector N_VNewEmpty_Parallel(MPI_Comm comm,
                                               sunindextype local_length,
                                               sunindextype global_length);
 
-SUNDIALS_EXPORT N_Vector N_VMake_Parallel(MPI_Comm comm, 
+SUNDIALS_EXPORT N_Vector N_VMake_Parallel(MPI_Comm comm,
                                           sunindextype local_length,
                                           sunindextype global_length,
                                           realtype *v_data);
 
-SUNDIALS_EXPORT N_Vector *N_VCloneVectorArray_Parallel(int count, N_Vector w);
+SUNDIALS_EXPORT N_Vector* N_VCloneVectorArray_Parallel(int count, N_Vector w);
 
-SUNDIALS_EXPORT N_Vector *N_VCloneVectorArrayEmpty_Parallel(int count, N_Vector w);
+SUNDIALS_EXPORT N_Vector* N_VCloneVectorArrayEmpty_Parallel(int count, N_Vector w);
 
-SUNDIALS_EXPORT void N_VDestroyVectorArray_Parallel(N_Vector *vs, int count);
+SUNDIALS_EXPORT void N_VDestroyVectorArray_Parallel(N_Vector* vs, int count);
 
 SUNDIALS_EXPORT sunindextype N_VGetLength_Parallel(N_Vector v);
 
@@ -125,6 +125,7 @@ SUNDIALS_EXPORT void N_VSpace_Parallel(N_Vector v, sunindextype *lrw,
                                        sunindextype *liw);
 SUNDIALS_EXPORT realtype *N_VGetArrayPointer_Parallel(N_Vector v);
 SUNDIALS_EXPORT void N_VSetArrayPointer_Parallel(realtype *v_data, N_Vector v);
+SUNDIALS_EXPORT void *N_VGetCommunicator_Parallel(N_Vector v);
 
 /* standard vector operations */
 SUNDIALS_EXPORT void N_VLinearSum_Parallel(realtype a, N_Vector x, realtype b, N_Vector y, N_Vector z);
@@ -153,10 +154,10 @@ SUNDIALS_EXPORT int N_VLinearCombination_Parallel(int nvec, realtype* c, N_Vecto
 SUNDIALS_EXPORT int N_VScaleAddMulti_Parallel(int nvec, realtype* a, N_Vector x,
                                               N_Vector* Y, N_Vector* Z);
 SUNDIALS_EXPORT int N_VDotProdMulti_Parallel(int nvec, N_Vector x,
-                                             N_Vector *Y, realtype* dotprods);
+                                             N_Vector* Y, realtype* dotprods);
 
 /* vector array operations */
-SUNDIALS_EXPORT int N_VLinearSumVectorArray_Parallel(int nvec, 
+SUNDIALS_EXPORT int N_VLinearSumVectorArray_Parallel(int nvec,
                                                      realtype a, N_Vector* X,
                                                      realtype b, N_Vector* Y,
                                                      N_Vector* Z);
@@ -178,6 +179,25 @@ SUNDIALS_EXPORT int N_VLinearCombinationVectorArray_Parallel(int nvec, int nsum,
                                                              realtype* c,
                                                              N_Vector** X,
                                                              N_Vector* Z);
+
+/* OPTIONAL local reduction kernels (no parallel communication) */
+SUNDIALS_EXPORT realtype N_VDotProdLocal_Parallel(N_Vector x, N_Vector y);
+SUNDIALS_EXPORT realtype N_VMaxNormLocal_Parallel(N_Vector x);
+SUNDIALS_EXPORT realtype N_VMinLocal_Parallel(N_Vector x);
+SUNDIALS_EXPORT realtype N_VL1NormLocal_Parallel(N_Vector x);
+SUNDIALS_EXPORT realtype N_VWSqrSumLocal_Parallel(N_Vector x, N_Vector w);
+SUNDIALS_EXPORT realtype N_VWSqrSumMaskLocal_Parallel(N_Vector x, N_Vector w,
+                                                      N_Vector id);
+SUNDIALS_EXPORT booleantype N_VInvTestLocal_Parallel(N_Vector x, N_Vector z);
+SUNDIALS_EXPORT booleantype N_VConstrMaskLocal_Parallel(N_Vector c, N_Vector x,
+                                                        N_Vector m);
+SUNDIALS_EXPORT realtype N_VMinQuotientLocal_Parallel(N_Vector num,
+                                                      N_Vector denom);
+
+/* OPTIONAL XBraid interface operations */
+SUNDIALS_EXPORT int N_VBufSize_Parallel(N_Vector x, sunindextype *size);
+SUNDIALS_EXPORT int N_VBufPack_Parallel(N_Vector x, void *buf);
+SUNDIALS_EXPORT int N_VBufUnpack_Parallel(N_Vector x, void *buf);
 
 /*
  * -----------------------------------------------------------------

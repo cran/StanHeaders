@@ -3,7 +3,7 @@
  * Programmer(s): Daniel Reynolds, Ashley Crawford @ SMU
  * -----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2019, Lawrence Livermore National Security
+ * Copyright (c) 2002-2020, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -12,12 +12,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * SUNDIALS Copyright End
  * -----------------------------------------------------------------
- * This is the header file for the PCG implementation of the 
+ * This is the header file for the PCG implementation of the
  * SUNLINSOL module, SUNLINSOL_PCG.  The PCG algorithm is based
  * on the Preconditioned Conjugate Gradient.
  *
  * Note:
- *   - The definition of the generic SUNLinearSolver structure can 
+ *   - The definition of the generic SUNLinearSolver structure can
  *     be found in the header file sundials_linearsolver.h.
  * -----------------------------------------------------------------
  */
@@ -28,7 +28,6 @@
 #include <sundials/sundials_linearsolver.h>
 #include <sundials/sundials_matrix.h>
 #include <sundials/sundials_nvector.h>
-#include <sundials/sundials_pcg.h>
 
 #ifdef __cplusplus  /* wrapper to enable C++ usage */
 extern "C" {
@@ -40,13 +39,13 @@ extern "C" {
 /* --------------------------------------
  * PCG Implementation of SUNLinearSolver
  * -------------------------------------- */
- 
+
 struct _SUNLinearSolverContent_PCG {
   int maxl;
   int pretype;
   int numiters;
   realtype resnorm;
-  long int last_flag;
+  int last_flag;
 
   ATimesFn ATimes;
   void* ATData;
@@ -59,11 +58,14 @@ struct _SUNLinearSolverContent_PCG {
   N_Vector p;
   N_Vector z;
   N_Vector Ap;
+
+  int print_level;
+  FILE* info_file;
 };
 
 typedef struct _SUNLinearSolverContent_PCG *SUNLinearSolverContent_PCG;
 
-  
+
 /* -------------------------------------
  * Exported Functions for SUNLINSOL_PCG
  * ------------------------------------- */
@@ -76,14 +78,12 @@ SUNDIALS_EXPORT int SUNLinSol_PCGSetPrecType(SUNLinearSolver S,
 SUNDIALS_EXPORT int SUNLinSol_PCGSetMaxl(SUNLinearSolver S,
                                          int maxl);
 
-/* deprecated */
-SUNDIALS_EXPORT SUNLinearSolver SUNPCG(N_Vector y, int pretype, int maxl);
-/* deprecated */
-SUNDIALS_EXPORT int SUNPCGSetPrecType(SUNLinearSolver S, int pretype);
-/* deprecated */
-SUNDIALS_EXPORT int SUNPCGSetMaxl(SUNLinearSolver S, int maxl);
+SUNDIALS_DEPRECATED_EXPORT SUNLinearSolver SUNPCG(N_Vector y, int pretype, int maxl);
+SUNDIALS_DEPRECATED_EXPORT int SUNPCGSetPrecType(SUNLinearSolver S, int pretype);
+SUNDIALS_DEPRECATED_EXPORT int SUNPCGSetMaxl(SUNLinearSolver S, int maxl);
 
 SUNDIALS_EXPORT SUNLinearSolver_Type SUNLinSolGetType_PCG(SUNLinearSolver S);
+SUNDIALS_EXPORT SUNLinearSolver_ID SUNLinSolGetID_PCG(SUNLinearSolver S);
 SUNDIALS_EXPORT int SUNLinSolInitialize_PCG(SUNLinearSolver S);
 SUNDIALS_EXPORT int SUNLinSolSetATimes_PCG(SUNLinearSolver S, void* A_data,
                                            ATimesFn ATimes);
@@ -100,11 +100,15 @@ SUNDIALS_EXPORT int SUNLinSolSolve_PCG(SUNLinearSolver S, SUNMatrix nul,
 SUNDIALS_EXPORT int SUNLinSolNumIters_PCG(SUNLinearSolver S);
 SUNDIALS_EXPORT realtype SUNLinSolResNorm_PCG(SUNLinearSolver S);
 SUNDIALS_EXPORT N_Vector SUNLinSolResid_PCG(SUNLinearSolver S);
-SUNDIALS_EXPORT long int SUNLinSolLastFlag_PCG(SUNLinearSolver S);
-SUNDIALS_EXPORT int SUNLinSolSpace_PCG(SUNLinearSolver S, 
-                                       long int *lenrwLS, 
+SUNDIALS_EXPORT sunindextype SUNLinSolLastFlag_PCG(SUNLinearSolver S);
+SUNDIALS_EXPORT int SUNLinSolSpace_PCG(SUNLinearSolver S,
+                                       long int *lenrwLS,
                                        long int *leniwLS);
 SUNDIALS_EXPORT int SUNLinSolFree_PCG(SUNLinearSolver S);
+SUNDIALS_EXPORT int SUNLinSolSetInfoFile_PCG(SUNLinearSolver LS,
+                                             FILE* info_file);
+SUNDIALS_EXPORT int SUNLinSolSetPrintLevel_PCG(SUNLinearSolver LS,
+                                               int print_level);
 
 #ifdef __cplusplus
 }

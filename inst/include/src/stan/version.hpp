@@ -1,7 +1,6 @@
 #ifndef STAN_VERSION_HPP
 #define STAN_VERSION_HPP
 
-#include <stan/math/prim/mat/fun/Eigen.hpp>
 #include <string>
 
 #ifndef STAN_STRING_EXPAND
@@ -13,8 +12,8 @@
 #endif
 
 #define STAN_MAJOR 2
-#define STAN_MINOR 21
-#define STAN_PATCH 0
+#define STAN_MINOR 26
+#define STAN_PATCH 1
 
 namespace stan {
 

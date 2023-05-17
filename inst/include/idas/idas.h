@@ -2,7 +2,7 @@
  * Programmer(s): Radu Serban @ LLNL
  * -----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2019, Lawrence Livermore National Security
+ * Copyright (c) 2002-2020, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -76,6 +76,7 @@ extern "C" {
 #define IDA_NO_RECOVERY     -14
 #define IDA_NLS_INIT_FAIL   -15
 #define IDA_NLS_SETUP_FAIL  -16
+#define IDA_NLS_FAIL        -17
 
 #define IDA_MEM_NULL        -20
 #define IDA_MEM_FAIL        -21
@@ -232,6 +233,12 @@ SUNDIALS_EXPORT int IDASetNoInactiveRootWarn(void *ida_mem);
 SUNDIALS_EXPORT int IDASolve(void *ida_mem, realtype tout, realtype *tret,
                              N_Vector yret, N_Vector ypret, int itask);
 
+/* Utility functions to update/compute y and yp based on ycor */
+SUNDIALS_EXPORT int IDAComputeY(void *ida_mem, N_Vector ycor, N_Vector y);
+SUNDIALS_EXPORT int IDAComputeYp(void *ida_mem, N_Vector ycor, N_Vector yp);
+SUNDIALS_EXPORT int IDAComputeYSens(void *ida_mem, N_Vector *ycor, N_Vector *yyS);
+SUNDIALS_EXPORT int IDAComputeYpSens(void *ida_mem, N_Vector *ycor, N_Vector *ypS);
+
 /* Dense output function */
 SUNDIALS_EXPORT int IDAGetDky(void *ida_mem, realtype t, int k, N_Vector dky);
 
@@ -247,6 +254,11 @@ SUNDIALS_EXPORT int IDAGetConsistentIC(void *ida_mem, N_Vector yy0_mod,
                                        N_Vector yp0_mod);
 SUNDIALS_EXPORT int IDAGetLastOrder(void *ida_mem, int *klast);
 SUNDIALS_EXPORT int IDAGetCurrentOrder(void *ida_mem, int *kcur);
+SUNDIALS_EXPORT int IDAGetCurrentCj(void *ida_mem, realtype *cj);
+SUNDIALS_EXPORT int IDAGetCurrentY(void *ida_mem, N_Vector *ycur);
+SUNDIALS_EXPORT int IDAGetCurrentYSens(void *ida_mem, N_Vector **yS);
+SUNDIALS_EXPORT int IDAGetCurrentYp(void *ida_mem, N_Vector *ypcur);
+SUNDIALS_EXPORT int IDAGetCurrentYpSens(void *ida_mem, N_Vector **ypS);
 SUNDIALS_EXPORT int IDAGetActualInitStep(void *ida_mem, realtype *hinused);
 SUNDIALS_EXPORT int IDAGetLastStep(void *ida_mem, realtype *hlast);
 SUNDIALS_EXPORT int IDAGetCurrentStep(void *ida_mem, realtype *hcur);
@@ -263,6 +275,19 @@ SUNDIALS_EXPORT int IDAGetIntegratorStats(void *ida_mem, long int *nsteps,
                                           int *qlast, int *qcur,
                                           realtype *hinused, realtype *hlast,
                                           realtype *hcur, realtype *tcur);
+SUNDIALS_EXPORT int IDAGetNonlinearSystemData(void *ida_mem, realtype *tcur,
+                                              N_Vector *yypred,
+                                              N_Vector *yppred,
+                                              N_Vector *yyn, N_Vector *ypn,
+                                              N_Vector *res, realtype *cj,
+                                              void **user_data);
+SUNDIALS_EXPORT int IDAGetNonlinearSystemDataSens(void *ida_mem, realtype *tcur,
+                                                  N_Vector **yySpred,
+                                                  N_Vector **ypSpred,
+                                                  N_Vector **yySn,
+                                                  N_Vector **ypSn,
+                                                  realtype *cj,
+                                                  void **user_data);
 SUNDIALS_EXPORT int IDAGetNumNonlinSolvIters(void *ida_mem, long int *nniters);
 SUNDIALS_EXPORT int IDAGetNumNonlinSolvConvFails(void *ida_mem,
                                                  long int *nncfails);
@@ -272,6 +297,10 @@ SUNDIALS_EXPORT char *IDAGetReturnFlagName(long int flag);
 
 /* Free function */
 SUNDIALS_EXPORT void IDAFree(void **ida_mem);
+
+/* IDALS interface function that depends on IDAResFn */
+SUNDIALS_EXPORT int IDASetJacTimesResFn(void *ida_mem,
+                                        IDAResFn jtimesResFn);
 
 
 /* ---------------------------------
@@ -536,6 +565,10 @@ typedef struct {
 
 SUNDIALS_EXPORT int IDAGetAdjCheckPointsInfo(void *ida_mem,
                                              IDAadjCheckPointRec *ckpnt);
+
+/* IDALS interface function that depends on IDAResFn */
+SUNDIALS_EXPORT int IDASetJacTimesResFnB(void *ida_mem, int which,
+                                         IDAResFn jtimesResFn);
 
 
 /* Undocumented Optional Output Functions For Backward Problems */
