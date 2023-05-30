@@ -1,4 +1,4 @@
-7b7daf72a10b898a03b2c6838ec823df *DESCRIPTION
+8b035901def030335bfe22094edeebf3 *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 c154f76504a2c135d15e3a5a519e6034 *NAMESPACE
 40e49061477c07658193faa24f3bd9b0 *R/Flags.R
@@ -6,9 +6,9 @@ fb8c2b040d19a6808b7ab50da8738563 *R/stanFunction.R
 7f91c2dad34af5cc648fb987f029b96e *build/vignette.rds
 c34ecf0a899536555d3179c8ea6b5336 *inst/CITATION
 d9f299a822d38c4fd8a3eb612ba4bbfd *inst/doc/sparselm_stan.hpp
-1fdd33d2d73368c52b15706c8deb934f *inst/doc/stanmath.R
-4834c77acee496fb70ec6f9d0a39ae9d *inst/doc/stanmath.Rmd
-b906d54f38fd3446512c2ba20b58393f *inst/doc/stanmath.html
+b834160aaf020e455433ed6bcbb39ba2 *inst/doc/stanmath.R
+d4d6f859ef0256a20b73528e3745e60d *inst/doc/stanmath.Rmd
+a30a5c73a198dead1e3df88737417899 *inst/doc/stanmath.html
 862e80872772db028262b67931401663 *inst/include/cvodes/cvodes.h
 63dd8420b44292fc63551923da89a532 *inst/include/cvodes/cvodes_bandpre.h
 1a1d6c219cb1cb46625350f8d21ed648 *inst/include/cvodes/cvodes_bbdpre.h
@@ -675,7 +675,7 @@ de8b4e221175c599cffee1d0fac92866 *inst/include/stan/math/fwd/core/operator_equal
 081697396be9892848a9572c8b5abfdd *inst/include/stan/math/fwd/core/operator_less_than_or_equal.hpp
 0b1ee8c588deb74c38255992124c50ae *inst/include/stan/math/fwd/core/operator_logical_and.hpp
 9e2c4a1f1b54aa5ec467d49818029f80 *inst/include/stan/math/fwd/core/operator_logical_or.hpp
-9bd08b0d02f78f309c22197189a1dbc9 *inst/include/stan/math/fwd/core/operator_multiplication.hpp
+20b6423ae35b96bdd4323d63be835d09 *inst/include/stan/math/fwd/core/operator_multiplication.hpp
 d777c6aa41767afb3d37ac692516c15f *inst/include/stan/math/fwd/core/operator_not_equal.hpp
 3a7967b4ce2bed0c0d5c9468cd010fe5 *inst/include/stan/math/fwd/core/operator_subtraction.hpp
 4b3dd1ad5ea5dd83b7222df07d2ec49f *inst/include/stan/math/fwd/core/operator_unary_minus.hpp
@@ -2066,7 +2066,7 @@ c516a67121a5f15679afd677f254a3fc *inst/include/stan/math/rev/core/operator_less_
 c7eae64249fc271818816e91a05f62ea *inst/include/stan/math/rev/core/operator_logical_and.hpp
 e3306a8f17d2d4230866262a15061dd2 *inst/include/stan/math/rev/core/operator_logical_or.hpp
 becc3bf8d770320c56a0eb8c3c701e9b *inst/include/stan/math/rev/core/operator_minus_equal.hpp
-981b2cbd337da0888ffee22bd5f6c3d1 *inst/include/stan/math/rev/core/operator_multiplication.hpp
+9034f4420177f83df1df958966b20be3 *inst/include/stan/math/rev/core/operator_multiplication.hpp
 6cd03e4e5f4804f8db4231250be89e2e *inst/include/stan/math/rev/core/operator_multiply_equal.hpp
 3609c8ff318a651944a0f7dd236bd63f *inst/include/stan/math/rev/core/operator_not_equal.hpp
 cdc232aa1e63f294cd96cb6a3d4e60c7 *inst/include/stan/math/rev/core/operator_plus_equal.hpp
@@ -2335,7 +2335,7 @@ c6e29c14ddc49c6f93dca56345986bee *inst/include/sundials/sundials_fconfig.in
 58e25f885301e2c400690f25a53e37c8 *inst/include/sundials/sundials_linearsolver.h
 d5c21091276e498dbee801c67ae609c8 *inst/include/sundials/sundials_math.h
 18ccd12faccdb01efa524f12fa9bbadf *inst/include/sundials/sundials_matrix.h
-6fc26b49f3f6cda7815ce35d450a3501 *inst/include/sundials/sundials_memory.h
+489c9eda9242014434a93eb783fef0e2 *inst/include/sundials/sundials_memory.h
 ec26fc8d7355f1f21f996ae8b89b7843 *inst/include/sundials/sundials_mpi_types.h
 bdb38259ffae46f09073386613817348 *inst/include/sundials/sundials_nonlinearsolver.h
 0f44e7efd3924a3d62e0ea4eddb855d3 *inst/include/sundials/sundials_nvector.h
@@ -2507,7 +2507,7 @@ ffc39d9f3fa1fdb962088ce37fea2c0a *src/sundials/sundials_iterative.c
 d021285a9e2aa525aacd45406e9351ac *src/sundials/sundials_linearsolver.c
 f7d3f30394d597230575dd9613e9c8a3 *src/sundials/sundials_math.c
 6d961dbf2191cb34c9321cef0755a4a2 *src/sundials/sundials_matrix.c
-bbebd8fc97cad0702fb7367a8af10eeb *src/sundials/sundials_memory.c
+dbecc85d1ecfbb7a9c2b488e13920fff *src/sundials/sundials_memory.c
 4fc5cbbe4e333b7e803fea1c286d554e *src/sundials/sundials_nonlinearsolver.c
 cb784df008347d7f893a71289fb9acfa *src/sundials/sundials_nvector.c
 e3bd359a9c51aa4b8d69225b93aca8f5 *src/sundials/sundials_nvector_senswrapper.c
@@ -2596,4 +2596,4 @@ c7e03832af5eeee77deb8329a003536a *src/sunnonlinsol/newton/fsunnonlinsol_newton.h
 a14c6365e6bbca755157a3133d8507e5 *src/sunnonlinsol/petscsnes/sunnonlinsol_petscsnes.c
 54cf10ca5ac7b36b45a9796ab12a1bfb *tests/rstan.R
 d9f299a822d38c4fd8a3eb612ba4bbfd *vignettes/sparselm_stan.hpp
-4834c77acee496fb70ec6f9d0a39ae9d *vignettes/stanmath.Rmd
+d4d6f859ef0256a20b73528e3745e60d *vignettes/stanmath.Rmd

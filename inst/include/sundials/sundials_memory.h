@@ -50,7 +50,7 @@ struct _SUNMemory
 };
 
 /* Creates a new SUNMemory object with a NULL ptr */
-SUNDIALS_EXPORT SUNMemory SUNMemoryNewEmpty();
+SUNDIALS_EXPORT SUNMemory SUNMemoryNewEmpty(void); // void added by bgoodri
 
 /*
  * SUNMemoryHelper holds ops which can allocate, deallocate,
@@ -129,7 +129,7 @@ SUNDIALS_EXPORT int SUNMemoryHelper_Destroy(SUNMemoryHelper);
  */
 
 /* Creates an empty SUNMemoryHelper object */
-SUNDIALS_EXPORT SUNMemoryHelper SUNMemoryHelper_NewEmpty();
+SUNDIALS_EXPORT SUNMemoryHelper SUNMemoryHelper_NewEmpty(void); // void added by bgoodri
 
 /* Copyies the SUNMemoryHelper ops structure from src->ops to dst->ops. */
 SUNDIALS_EXPORT int SUNMemoryHelper_CopyOps(SUNMemoryHelper src,

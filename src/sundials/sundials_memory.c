@@ -20,7 +20,7 @@
 #include <sundials/sundials_memory.h>
 
 
-SUNMemory SUNMemoryNewEmpty()
+SUNMemory SUNMemoryNewEmpty(void) // void added by bgoodri
 {
   SUNMemory mem = NULL;
 
@@ -35,7 +35,7 @@ SUNMemory SUNMemoryNewEmpty()
 }
 
 
-SUNMemoryHelper SUNMemoryHelper_NewEmpty()
+SUNMemoryHelper SUNMemoryHelper_NewEmpty(void) // void added by bgoodri
 {
   SUNMemoryHelper helper = NULL;
 

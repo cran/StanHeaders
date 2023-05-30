@@ -1,6 +1,6 @@
 Package: StanHeaders
 Title: C++ Header Files for Stan
-Version: 2.26.25
+Version: 2.26.26
 Authors@R: c(person("Ben",family="Goodrich", email="benjamin.goodrich@columbia.edu", role=c('cre','aut')),
              person("Joshua", "Pritikin", role = "ctb"),
              person("Andrew", "Gelman", role = "aut"),
@@ -44,7 +44,7 @@ License: BSD_3_clause + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.1.2
 NeedsCompilation: yes
-Packaged: 2023-05-11 18:09:58 UTC; ben
+Packaged: 2023-05-30 18:49:56 UTC; ben
 Author: Ben Goodrich [cre, aut],
   Joshua Pritikin [ctb],
   Andrew Gelman [aut],
@@ -75,4 +75,4 @@ Author: Ben Goodrich [cre, aut],
   Southern Methodist University [cph] (CVODES)
 Maintainer: Ben Goodrich <benjamin.goodrich@columbia.edu>
 Repository: CRAN
-Date/Publication: 2023-05-17 07:30:07 UTC
+Date/Publication: 2023-05-30 23:10:06 UTC

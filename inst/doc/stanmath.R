@@ -14,7 +14,7 @@ local({
     hook_output(x, options)
   })
 })
-Sys.setenv(USE_CXX14 = "1")
+Sys.setenv(USE_CXX17 = "1")
 set.seed(12345)
 
 ## -------------------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ exposeClass("sparselm_stan",
                  "// [[Rcpp::depends(RcppEigen)]]",
                  "// [[Rcpp::depends(RcppParallel)]",
                  "// [[Rcpp::depends(StanHeaders)]]",
-                 "// [[Rcpp::plugins(cpp14)]]",
+                 "// [[Rcpp::plugins(cpp17)]]",
                  paste0("#include <", file.path(getwd(), "sparselm_stan.hpp"), ">")),
       file = tf,
       Rfile = FALSE)
