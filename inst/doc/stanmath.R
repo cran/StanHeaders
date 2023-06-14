@@ -39,7 +39,7 @@ Sys.setenv(PKG_LIBS = paste0(StanHeaders:::LdFlags(as_character = TRUE),
 x <- optim(rnorm(3), fn = f, gr = g, a = 1:3, method = "BFGS", hessian = TRUE)
 x$par
 x$hessian
-#H(x$par, a = 1:3)
+H(x$par, a = 1:3)
 J(x$par, a = 1:3)
 solution(a = 1:3, guess = rnorm(3))
 
