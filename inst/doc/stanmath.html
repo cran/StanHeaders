@@ -12,7 +12,7 @@
 
 <meta name="author" content="Stan Development Team" />
 
-<meta name="date" content="2023-06-13" />
+<meta name="date" content="2023-09-07" />
 
 <title>Using the Stan Math C++ Library</title>
 
@@ -326,7 +326,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Using the Stan Math C++ Library</h1>
 <h4 class="author">Stan Development Team</h4>
-<h4 class="date">2023-06-13</h4>
+<h4 class="date">2023-09-07</h4>
 
 
 
@@ -335,7 +335,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>The <strong>StanHeaders</strong> package contains no R functions. To use the Stan Math Library in other packages, it is often sufficient to specify</p>
 <pre><code>LinkingTo: StanHeaders (&gt;= 2.26.0), RcppParallel (&gt;= 5.0.1)</code></pre>
 <p>in the DESCRIPTION file of another package and put something like</p>
-<pre><code>CXX_STD = CXX17
+<pre><code>CXX_STD = CXX14
 PKG_CXXFLAGS = $(shell &quot;$(R_HOME)/bin$(R_ARCH_BIN)/Rscript&quot; -e &quot;RcppParallel::CxxFlags()&quot;) \
                $(shell &quot;$(R_HOME)/bin$(R_ARCH_BIN)/Rscript&quot; -e &quot;StanHeaders:::CxxFlags()&quot;)
 PKG_LIBS = $(shell &quot;$(R_HOME)/bin$(R_ARCH_BIN)/Rscript&quot; -e &quot;RcppParallel::RcppParallelLibs()&quot;) \
@@ -893,19 +893,19 @@ PKG_CXXFLAGS += -I&quot;$(STANHEADERS_SRC)&quot;</code></pre>
 <a class="sourceLine" id="cb7-2" title="2"><span class="co">// [[Rcpp::depends(RcppEigen)]]</span></a>
 <a class="sourceLine" id="cb7-3" title="3"><span class="co">// [[Rcpp::depends(RcppParallel)]]</span></a>
 <a class="sourceLine" id="cb7-4" title="4"><span class="co">// [[Rcpp::depends(StanHeaders)]]</span></a>
-<a class="sourceLine" id="cb7-5" title="5"><span class="pp">#include </span><span class="im">&lt;stan/math/mix.hpp&gt;</span><span class="pp"> </span><span class="co">// stuff from mix/ must come first</span></a>
-<a class="sourceLine" id="cb7-6" title="6"><span class="pp">#include </span><span class="im">&lt;stan/math.hpp&gt;</span><span class="pp">     </span><span class="co">// finally pull in everything from rev/ &amp; prim/</span></a>
+<a class="sourceLine" id="cb7-5" title="5"><span class="pp">#include </span><span class="im">&lt;stan/math/mix/functor/hessian.hpp&gt;</span><span class="pp"> </span><span class="co">// stuff from mix/ must come first</span></a>
+<a class="sourceLine" id="cb7-6" title="6"><span class="pp">#include </span><span class="im">&lt;stan/math.hpp&gt;</span><span class="pp">                     </span><span class="co">// finally pull in everything from rev/ &amp; prim/</span></a>
 <a class="sourceLine" id="cb7-7" title="7"><span class="pp">#include </span><span class="im">&lt;Rcpp.h&gt;</span></a>
-<a class="sourceLine" id="cb7-8" title="8"><span class="pp">#include </span><span class="im">&lt;RcppEigen.h&gt;</span><span class="pp">       </span><span class="co">// do this AFTER including stan/math</span></a>
+<a class="sourceLine" id="cb7-8" title="8"><span class="pp">#include </span><span class="im">&lt;RcppEigen.h&gt;</span><span class="pp">                       </span><span class="co">// do this AFTER including stan/math</span></a>
 <a class="sourceLine" id="cb7-9" title="9"></a>
-<a class="sourceLine" id="cb7-10" title="10"><span class="co">// [[Rcpp::plugins(cpp17)]]</span></a>
+<a class="sourceLine" id="cb7-10" title="10"><span class="co">// [[Rcpp::plugins(cpp14)]]</span></a>
 <a class="sourceLine" id="cb7-11" title="11"></a>
 <a class="sourceLine" id="cb7-12" title="12"><span class="co">/* Objective function */</span></a>
 <a class="sourceLine" id="cb7-13" title="13"></a>
 <a class="sourceLine" id="cb7-14" title="14"><span class="co">// [[Rcpp::export]]</span></a>
 <a class="sourceLine" id="cb7-15" title="15"><span class="kw">auto</span> f(Eigen::VectorXd x, Eigen::VectorXd a) { <span class="co">// objective function in doubles</span></a>
 <a class="sourceLine" id="cb7-16" title="16">  <span class="kw">using</span> stan::math::dot_self;                  <span class="co">// dot_self() is a dot product with self</span></a>
-<a class="sourceLine" id="cb7-17" title="17">  <span class="cf">return</span> dot_self(x - a);</a>
+<a class="sourceLine" id="cb7-17" title="17">  <span class="cf">return</span> dot_self( (x - a).eval() );           <span class="co">// .eval() yields a Eigen::VectorXd</span></a>
 <a class="sourceLine" id="cb7-18" title="18">}</a>
 <a class="sourceLine" id="cb7-19" title="19"></a>
 <a class="sourceLine" id="cb7-20" title="20"><span class="co">/* Gradient */</span></a>
@@ -915,56 +915,59 @@ PKG_CXXFLAGS += -I&quot;$(STANHEADERS_SRC)&quot;</code></pre>
 <a class="sourceLine" id="cb7-24" title="24">  <span class="dt">double</span> fx;</a>
 <a class="sourceLine" id="cb7-25" title="25">  Eigen::VectorXd grad_fx;</a>
 <a class="sourceLine" id="cb7-26" title="26">  <span class="kw">using</span> stan::math::dot_self;</a>
-<a class="sourceLine" id="cb7-27" title="27">  stan::math::gradient([&amp;a](<span class="kw">auto</span> x) { <span class="cf">return</span> dot_self(x - a); },</a>
+<a class="sourceLine" id="cb7-27" title="27">  stan::math::gradient([&amp;a](<span class="kw">auto</span> x) { <span class="cf">return</span> dot_self( (x - a).eval() ); },</a>
 <a class="sourceLine" id="cb7-28" title="28">                       x, fx, grad_fx);</a>
 <a class="sourceLine" id="cb7-29" title="29">  <span class="cf">return</span> grad_fx;</a>
 <a class="sourceLine" id="cb7-30" title="30">}</a>
 <a class="sourceLine" id="cb7-31" title="31"></a>
 <a class="sourceLine" id="cb7-32" title="32"><span class="co">/* Hessian */</span></a>
 <a class="sourceLine" id="cb7-33" title="33"></a>
-<a class="sourceLine" id="cb7-34" title="34"><span class="co">// [[Rcpp::export]]</span></a>
-<a class="sourceLine" id="cb7-35" title="35"><span class="kw">auto</span> H(Eigen::VectorXd x, Eigen::VectorXd a) { <span class="co">// Hessian by AD using Stan</span></a>
-<a class="sourceLine" id="cb7-36" title="36">  <span class="dt">double</span> fx;</a>
-<a class="sourceLine" id="cb7-37" title="37">  Eigen::VectorXd grad_fx;</a>
-<a class="sourceLine" id="cb7-38" title="38">  Eigen::MatrixXd H;</a>
-<a class="sourceLine" id="cb7-39" title="39">  <span class="kw">using</span> stan::math::dot_self;</a>
-<a class="sourceLine" id="cb7-40" title="40">  stan::math::hessian([&amp;a](<span class="kw">auto</span> x) { <span class="cf">return</span> dot_self(x - a); },</a>
-<a class="sourceLine" id="cb7-41" title="41">                      x, fx, grad_fx, H);</a>
-<a class="sourceLine" id="cb7-42" title="42">  <span class="cf">return</span> H;</a>
-<a class="sourceLine" id="cb7-43" title="43">}</a>
-<a class="sourceLine" id="cb7-44" title="44"></a>
-<a class="sourceLine" id="cb7-45" title="45"><span class="co">/* Jacobian */</span></a>
-<a class="sourceLine" id="cb7-46" title="46"></a>
-<a class="sourceLine" id="cb7-47" title="47"><span class="co">// [[Rcpp::export]]</span></a>
-<a class="sourceLine" id="cb7-48" title="48"><span class="kw">auto</span> J(Eigen::VectorXd x, Eigen::VectorXd a) { <span class="co">// not actually used</span></a>
-<a class="sourceLine" id="cb7-49" title="49">  Eigen::VectorXd fx;</a>
-<a class="sourceLine" id="cb7-50" title="50">  Eigen::MatrixXd J;</a>
-<a class="sourceLine" id="cb7-51" title="51">  <span class="kw">using</span> stan::math::dot_self;</a>
-<a class="sourceLine" id="cb7-52" title="52">  stan::math::jacobian([&amp;a](<span class="kw">auto</span> x) {</a>
-<a class="sourceLine" id="cb7-53" title="53">    <span class="cf">return</span> <span class="dv">2</span> * (x - a);</a>
-<a class="sourceLine" id="cb7-54" title="54">  }, x, fx, J);</a>
-<a class="sourceLine" id="cb7-55" title="55">  <span class="cf">return</span> J;</a>
-<a class="sourceLine" id="cb7-56" title="56">}</a>
-<a class="sourceLine" id="cb7-57" title="57"></a>
-<a class="sourceLine" id="cb7-58" title="58"><span class="kw">struct</span> equations_functor {</a>
-<a class="sourceLine" id="cb7-59" title="59">  <span class="kw">template</span> &lt;<span class="kw">typename</span> T0, <span class="kw">typename</span> T1&gt;</a>
-<a class="sourceLine" id="cb7-60" title="60">  <span class="kw">inline</span> Eigen::Matrix&lt;T0, Eigen::Dynamic, <span class="dv">1</span>&gt;</a>
-<a class="sourceLine" id="cb7-61" title="61">  <span class="kw">operator</span>()(<span class="at">const</span> Eigen::Matrix&lt;T0, Eigen::Dynamic, <span class="dv">1</span>&gt;&amp; x,</a>
-<a class="sourceLine" id="cb7-62" title="62">             <span class="at">const</span> Eigen::Matrix&lt;T1, Eigen::Dynamic, <span class="dv">1</span>&gt;&amp; theta,</a>
-<a class="sourceLine" id="cb7-63" title="63">             <span class="at">const</span> <span class="bu">std::</span>vector&lt;<span class="dt">double</span>&gt;&amp; x_r, <span class="at">const</span> <span class="bu">std::</span>vector&lt;<span class="dt">int</span>&gt;&amp; x_i,</a>
-<a class="sourceLine" id="cb7-64" title="64">             <span class="bu">std::</span>ostream* pstream__) <span class="at">const</span> {</a>
-<a class="sourceLine" id="cb7-65" title="65">    <span class="cf">return</span> <span class="dv">2</span> * (x - stan::math::to_vector(x_r)).eval();</a>
-<a class="sourceLine" id="cb7-66" title="66">  }</a>
-<a class="sourceLine" id="cb7-67" title="67">};</a>
-<a class="sourceLine" id="cb7-68" title="68"></a>
-<a class="sourceLine" id="cb7-69" title="69"><span class="co">// [[Rcpp::export]]</span></a>
-<a class="sourceLine" id="cb7-70" title="70"><span class="kw">auto</span> solution(Eigen::VectorXd a, Eigen::VectorXd guess) {</a>
-<a class="sourceLine" id="cb7-71" title="71">  Eigen::VectorXd theta;</a>
-<a class="sourceLine" id="cb7-72" title="72">  <span class="kw">auto</span> x_r = stan::math::to_array_1d(a);</a>
-<a class="sourceLine" id="cb7-73" title="73">  equations_functor f;</a>
-<a class="sourceLine" id="cb7-74" title="74">  <span class="kw">auto</span> x = stan::math::algebra_solver(f, guess, theta, x_r, {});</a>
-<a class="sourceLine" id="cb7-75" title="75">  <span class="cf">return</span> x;</a>
-<a class="sourceLine" id="cb7-76" title="76">}</a></code></pre></div>
+<a class="sourceLine" id="cb7-34" title="34"><span class="co">/*</span></a>
+<a class="sourceLine" id="cb7-35" title="35"><span class="co">// [[Rcpp::export]]</span></a>
+<a class="sourceLine" id="cb7-36" title="36"><span class="co">auto H(Eigen::VectorXd x, Eigen::VectorXd a) { // Hessian by AD using Stan</span></a>
+<a class="sourceLine" id="cb7-37" title="37"><span class="co">  double fx;</span></a>
+<a class="sourceLine" id="cb7-38" title="38"><span class="co">  Eigen::VectorXd grad_fx;</span></a>
+<a class="sourceLine" id="cb7-39" title="39"><span class="co">  Eigen::MatrixXd H;</span></a>
+<a class="sourceLine" id="cb7-40" title="40"><span class="co">  using stan::math::dot_self;</span></a>
+<a class="sourceLine" id="cb7-41" title="41"><span class="co">  using stan::math::subtract; // necessary to get the type promotion correct</span></a>
+<a class="sourceLine" id="cb7-42" title="42"><span class="co">  stan::math::hessian([&amp;a](auto x) { return dot_self(subtract(x, a)); },</span></a>
+<a class="sourceLine" id="cb7-43" title="43"><span class="co">                      x, fx, grad_fx, H);</span></a>
+<a class="sourceLine" id="cb7-44" title="44"><span class="co">  return H;</span></a>
+<a class="sourceLine" id="cb7-45" title="45"><span class="co">}</span></a>
+<a class="sourceLine" id="cb7-46" title="46"><span class="co">*/</span></a>
+<a class="sourceLine" id="cb7-47" title="47"></a>
+<a class="sourceLine" id="cb7-48" title="48"><span class="co">/* Jacobian */</span></a>
+<a class="sourceLine" id="cb7-49" title="49"></a>
+<a class="sourceLine" id="cb7-50" title="50"><span class="co">// [[Rcpp::export]]</span></a>
+<a class="sourceLine" id="cb7-51" title="51"><span class="kw">auto</span> J(Eigen::VectorXd x, Eigen::VectorXd a) { <span class="co">// not actually used</span></a>
+<a class="sourceLine" id="cb7-52" title="52">  Eigen::VectorXd fx;</a>
+<a class="sourceLine" id="cb7-53" title="53">  Eigen::MatrixXd J;</a>
+<a class="sourceLine" id="cb7-54" title="54">  <span class="kw">using</span> stan::math::dot_self;</a>
+<a class="sourceLine" id="cb7-55" title="55">  stan::math::jacobian([&amp;a](<span class="kw">auto</span> x) {</a>
+<a class="sourceLine" id="cb7-56" title="56">    <span class="cf">return</span> (<span class="dv">2</span> * (x - a)).eval();</a>
+<a class="sourceLine" id="cb7-57" title="57">  }, x, fx, J);</a>
+<a class="sourceLine" id="cb7-58" title="58">  <span class="cf">return</span> J;</a>
+<a class="sourceLine" id="cb7-59" title="59">}</a>
+<a class="sourceLine" id="cb7-60" title="60"></a>
+<a class="sourceLine" id="cb7-61" title="61"><span class="kw">struct</span> equations_functor {</a>
+<a class="sourceLine" id="cb7-62" title="62">  <span class="kw">template</span> &lt;<span class="kw">typename</span> T0, <span class="kw">typename</span> T1&gt;</a>
+<a class="sourceLine" id="cb7-63" title="63">  <span class="kw">inline</span> Eigen::Matrix&lt;T0, Eigen::Dynamic, <span class="dv">1</span>&gt;</a>
+<a class="sourceLine" id="cb7-64" title="64">  <span class="kw">operator</span>()(<span class="at">const</span> Eigen::Matrix&lt;T0, Eigen::Dynamic, <span class="dv">1</span>&gt;&amp; x,</a>
+<a class="sourceLine" id="cb7-65" title="65">             <span class="at">const</span> Eigen::Matrix&lt;T1, Eigen::Dynamic, <span class="dv">1</span>&gt;&amp; theta,</a>
+<a class="sourceLine" id="cb7-66" title="66">             <span class="at">const</span> <span class="bu">std::</span>vector&lt;<span class="dt">double</span>&gt;&amp; x_r, <span class="at">const</span> <span class="bu">std::</span>vector&lt;<span class="dt">int</span>&gt;&amp; x_i,</a>
+<a class="sourceLine" id="cb7-67" title="67">             <span class="bu">std::</span>ostream* pstream__) <span class="at">const</span> {</a>
+<a class="sourceLine" id="cb7-68" title="68">    <span class="cf">return</span> <span class="dv">2</span> * (x - stan::math::to_vector(x_r)).eval();</a>
+<a class="sourceLine" id="cb7-69" title="69">  }</a>
+<a class="sourceLine" id="cb7-70" title="70">};</a>
+<a class="sourceLine" id="cb7-71" title="71"></a>
+<a class="sourceLine" id="cb7-72" title="72"><span class="co">// [[Rcpp::export]]</span></a>
+<a class="sourceLine" id="cb7-73" title="73"><span class="kw">auto</span> solution(Eigen::VectorXd a, Eigen::VectorXd guess) {</a>
+<a class="sourceLine" id="cb7-74" title="74">  Eigen::VectorXd theta;</a>
+<a class="sourceLine" id="cb7-75" title="75">  <span class="kw">auto</span> x_r = stan::math::to_array_1d(a);</a>
+<a class="sourceLine" id="cb7-76" title="76">  equations_functor f;</a>
+<a class="sourceLine" id="cb7-77" title="77">  <span class="kw">auto</span> x = stan::math::algebra_solver(f, guess, theta, x_r, {});</a>
+<a class="sourceLine" id="cb7-78" title="78">  <span class="cf">return</span> x;</a>
+<a class="sourceLine" id="cb7-79" title="79">}</a></code></pre></div>
 <p>In this compiled RMarkdown document, the <strong>knitr</strong> package has exported functions <code>f</code>, <code>g</code>, <code>H</code>, <code>J</code> and <code>solution</code> (but not <code>equations_functor</code>) to R’s global environment using the <code>sourceCpp</code> function in the <strong>Rcpp</strong> package, so that they can now be called from R. Here we find the optimum starting from a random point in three dimensions:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">x &lt;-<span class="st"> </span><span class="kw">optim</span>(<span class="kw">rnorm</span>(<span class="dv">3</span>), <span class="dt">fn =</span> f, <span class="dt">gr =</span> g, <span class="dt">a =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>, <span class="dt">method =</span> <span class="st">&quot;BFGS&quot;</span>, <span class="dt">hessian =</span> <span class="ot">TRUE</span>)</a>
 <a class="sourceLine" id="cb8-2" title="2">x<span class="op">$</span>par</a>
@@ -974,18 +977,14 @@ PKG_CXXFLAGS += -I&quot;$(STANHEADERS_SRC)&quot;</code></pre>
 <a class="sourceLine" id="cb8-6" title="6"><span class="co">#&gt; [1,]    2    0    0</span></a>
 <a class="sourceLine" id="cb8-7" title="7"><span class="co">#&gt; [2,]    0    2    0</span></a>
 <a class="sourceLine" id="cb8-8" title="8"><span class="co">#&gt; [3,]    0    0    2</span></a>
-<a class="sourceLine" id="cb8-9" title="9"><span class="kw">H</span>(x<span class="op">$</span>par, <span class="dt">a =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>)</a>
-<a class="sourceLine" id="cb8-10" title="10"><span class="co">#&gt;      [,1] [,2] [,3]</span></a>
-<a class="sourceLine" id="cb8-11" title="11"><span class="co">#&gt; [1,]    2    0    0</span></a>
-<a class="sourceLine" id="cb8-12" title="12"><span class="co">#&gt; [2,]    0    2    0</span></a>
-<a class="sourceLine" id="cb8-13" title="13"><span class="co">#&gt; [3,]    0    0    2</span></a>
-<a class="sourceLine" id="cb8-14" title="14"><span class="kw">J</span>(x<span class="op">$</span>par, <span class="dt">a =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>)</a>
-<a class="sourceLine" id="cb8-15" title="15"><span class="co">#&gt;      [,1] [,2] [,3]</span></a>
-<a class="sourceLine" id="cb8-16" title="16"><span class="co">#&gt; [1,]    2    0    0</span></a>
-<a class="sourceLine" id="cb8-17" title="17"><span class="co">#&gt; [2,]    0    2    0</span></a>
-<a class="sourceLine" id="cb8-18" title="18"><span class="co">#&gt; [3,]    0    0    2</span></a>
-<a class="sourceLine" id="cb8-19" title="19"><span class="kw">solution</span>(<span class="dt">a =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>, <span class="dt">guess =</span> <span class="kw">rnorm</span>(<span class="dv">3</span>))</a>
-<a class="sourceLine" id="cb8-20" title="20"><span class="co">#&gt; [1] 1 2 3</span></a></code></pre></div>
+<a class="sourceLine" id="cb8-9" title="9"><span class="co">#H(x$par, a = 1:3)</span></a>
+<a class="sourceLine" id="cb8-10" title="10"><span class="kw">J</span>(x<span class="op">$</span>par, <span class="dt">a =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb8-11" title="11"><span class="co">#&gt;      [,1] [,2] [,3]</span></a>
+<a class="sourceLine" id="cb8-12" title="12"><span class="co">#&gt; [1,]    2    0    0</span></a>
+<a class="sourceLine" id="cb8-13" title="13"><span class="co">#&gt; [2,]    0    2    0</span></a>
+<a class="sourceLine" id="cb8-14" title="14"><span class="co">#&gt; [3,]    0    0    2</span></a>
+<a class="sourceLine" id="cb8-15" title="15"><span class="kw">solution</span>(<span class="dt">a =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>, <span class="dt">guess =</span> <span class="kw">rnorm</span>(<span class="dv">3</span>))</a>
+<a class="sourceLine" id="cb8-16" title="16"><span class="co">#&gt; [1] 1 2 3</span></a></code></pre></div>
 </div>
 </div>
 <div id="integrals-and-ordinary-differential-equations" class="section level1">
@@ -999,7 +998,7 @@ PKG_CXXFLAGS += -I&quot;$(STANHEADERS_SRC)&quot;</code></pre>
 <a class="sourceLine" id="cb9-6" title="6"><span class="pp">#include </span><span class="im">&lt;Rcpp.h&gt;</span></a>
 <a class="sourceLine" id="cb9-7" title="7"><span class="pp">#include </span><span class="im">&lt;RcppEigen.h&gt;</span><span class="pp">                           </span><span class="co">// do this AFTER including stan/math</span></a>
 <a class="sourceLine" id="cb9-8" title="8"></a>
-<a class="sourceLine" id="cb9-9" title="9"><span class="co">// [[Rcpp::plugins(cpp17)]]</span></a>
+<a class="sourceLine" id="cb9-9" title="9"><span class="co">// [[Rcpp::plugins(cpp14)]]</span></a>
 <a class="sourceLine" id="cb9-10" title="10"></a>
 <a class="sourceLine" id="cb9-11" title="11"><span class="co">/* Definite integrals */</span></a>
 <a class="sourceLine" id="cb9-12" title="12"></a>
@@ -1070,7 +1069,7 @@ PKG_CXXFLAGS += -I&quot;$(STANHEADERS_SRC)&quot;</code></pre>
 <a class="sourceLine" id="cb13-6" title="6"><span class="pp">#include </span><span class="im">&lt;Rcpp.h&gt;</span></a>
 <a class="sourceLine" id="cb13-7" title="7"><span class="pp">#include </span><span class="im">&lt;RcppEigen.h&gt;</span><span class="pp">                           </span><span class="co">// do this AFTER including stan/math</span></a>
 <a class="sourceLine" id="cb13-8" title="8"></a>
-<a class="sourceLine" id="cb13-9" title="9"><span class="co">// [[Rcpp::plugins(cpp17)]]</span></a>
+<a class="sourceLine" id="cb13-9" title="9"><span class="co">// [[Rcpp::plugins(cpp14)]]</span></a>
 <a class="sourceLine" id="cb13-10" title="10"></a>
 <a class="sourceLine" id="cb13-11" title="11"><span class="co">// see https://en.wikipedia.org/wiki/Primality_test#Pseudocode</span></a>
 <a class="sourceLine" id="cb13-12" title="12"><span class="kw">struct</span> is_prime {</a>
@@ -1196,7 +1195,7 @@ public: // these would ordinarily be private in the C++ code generated by Stan
 <a class="sourceLine" id="cb16-10" title="10">                 <span class="st">&quot;// [[Rcpp::depends(RcppEigen)]]&quot;</span>,</a>
 <a class="sourceLine" id="cb16-11" title="11">                 <span class="st">&quot;// [[Rcpp::depends(RcppParallel)]&quot;</span>,</a>
 <a class="sourceLine" id="cb16-12" title="12">                 <span class="st">&quot;// [[Rcpp::depends(StanHeaders)]]&quot;</span>,</a>
-<a class="sourceLine" id="cb16-13" title="13">                 <span class="st">&quot;// [[Rcpp::plugins(cpp17)]]&quot;</span>,</a>
+<a class="sourceLine" id="cb16-13" title="13">                 <span class="st">&quot;// [[Rcpp::plugins(cpp14)]]&quot;</span>,</a>
 <a class="sourceLine" id="cb16-14" title="14">                 <span class="kw">paste0</span>(<span class="st">&quot;#include &lt;&quot;</span>, <span class="kw">file.path</span>(<span class="kw">getwd</span>(), <span class="st">&quot;sparselm_stan.hpp&quot;</span>), <span class="st">&quot;&gt;&quot;</span>)),</a>
 <a class="sourceLine" id="cb16-15" title="15">      <span class="dt">file =</span> tf,</a>
 <a class="sourceLine" id="cb16-16" title="16">      <span class="dt">Rfile =</span> <span class="ot">FALSE</span>)</a>
@@ -1205,7 +1204,7 @@ public: // these would ordinarily be private in the C++ code generated by Stan
 <a class="sourceLine" id="cb16-19" title="19">                                             <span class="dt">package =</span> <span class="st">&quot;StanHeaders&quot;</span>, <span class="dt">mustWork =</span> <span class="ot">TRUE</span>)))</a>
 <a class="sourceLine" id="cb16-20" title="20"><span class="kw">sourceCpp</span>(tf)</a>
 <a class="sourceLine" id="cb16-21" title="21">sparselm_stan</a>
-<a class="sourceLine" id="cb16-22" title="22"><span class="co">#&gt; C++ class 'sparselm_stan' &lt;0x560e8de7eed0&gt;</span></a>
+<a class="sourceLine" id="cb16-22" title="22"><span class="co">#&gt; C++ class 'sparselm_stan' &lt;0x555b5117f800&gt;</span></a>
 <a class="sourceLine" id="cb16-23" title="23"><span class="co">#&gt; Constructors:</span></a>
 <a class="sourceLine" id="cb16-24" title="24"><span class="co">#&gt;     sparselm_stan(Eigen::Map&lt;Eigen::SparseMatrix&lt;double, 0, int&gt;, 0, Eigen::Stride&lt;0, 0&gt; &gt;, Eigen::Matrix&lt;double, -1, 1, 0, -1, 1&gt;)</span></a>
 <a class="sourceLine" id="cb16-25" title="25"><span class="co">#&gt; </span></a>

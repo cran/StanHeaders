@@ -14,7 +14,7 @@ local({
     hook_output(x, options)
   })
 })
-Sys.setenv(USE_CXX17 = "1")
+Sys.setenv(USE_CXX14 = "1")
 set.seed(12345)
 
 ## -------------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ Sys.setenv(PKG_LIBS = paste0(StanHeaders:::LdFlags(as_character = TRUE),
 x <- optim(rnorm(3), fn = f, gr = g, a = 1:3, method = "BFGS", hessian = TRUE)
 x$par
 x$hessian
-H(x$par, a = 1:3)
+#H(x$par, a = 1:3)
 J(x$par, a = 1:3)
 solution(a = 1:3, guess = rnorm(3))
 
@@ -75,7 +75,7 @@ exposeClass("sparselm_stan",
                  "// [[Rcpp::depends(RcppEigen)]]",
                  "// [[Rcpp::depends(RcppParallel)]",
                  "// [[Rcpp::depends(StanHeaders)]]",
-                 "// [[Rcpp::plugins(cpp17)]]",
+                 "// [[Rcpp::plugins(cpp14)]]",
                  paste0("#include <", file.path(getwd(), "sparselm_stan.hpp"), ">")),
       file = tf,
       Rfile = FALSE)

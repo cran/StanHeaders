@@ -1,14 +1,14 @@
-96a00dc197e4d4e8a568cd590b3bb5b4 *DESCRIPTION
+452acbc328831d09a8f497df2ed05077 *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 c154f76504a2c135d15e3a5a519e6034 *NAMESPACE
-ce401a88e6dac1674be8186a064c7479 *R/Flags.R
+40e49061477c07658193faa24f3bd9b0 *R/Flags.R
 fb8c2b040d19a6808b7ab50da8738563 *R/stanFunction.R
 7f91c2dad34af5cc648fb987f029b96e *build/vignette.rds
 c34ecf0a899536555d3179c8ea6b5336 *inst/CITATION
 d9f299a822d38c4fd8a3eb612ba4bbfd *inst/doc/sparselm_stan.hpp
-7009b02695a4838af45d30708f8fead4 *inst/doc/stanmath.R
-837ec79e46c062b60ebcbad9a2889f81 *inst/doc/stanmath.Rmd
-04f40502a1ed4ece6812073ce3f7a0d7 *inst/doc/stanmath.html
+1fdd33d2d73368c52b15706c8deb934f *inst/doc/stanmath.R
+4834c77acee496fb70ec6f9d0a39ae9d *inst/doc/stanmath.Rmd
+fb1b829f5d2fd6c548c90fac048975b8 *inst/doc/stanmath.html
 862e80872772db028262b67931401663 *inst/include/cvodes/cvodes.h
 63dd8420b44292fc63551923da89a532 *inst/include/cvodes/cvodes_bandpre.h
 1a1d6c219cb1cb46625350f8d21ed648 *inst/include/cvodes/cvodes_bbdpre.h
@@ -1776,7 +1776,7 @@ ecb1c1d69d47f785b41c5d91371daf8f *inst/include/stan/math/prim/prob/exponential_c
 b4135341e59d0c735ffebe78233dd30c *inst/include/stan/math/prim/prob/exponential_lccdf.hpp
 3de3309cbf01b6052e9f7697bd82a73b *inst/include/stan/math/prim/prob/exponential_lcdf.hpp
 e78ee96b8637a45143bb94a00a6f9462 *inst/include/stan/math/prim/prob/exponential_log.hpp
-44d12d10fa4c3e69ddfc19d49fc0f092 *inst/include/stan/math/prim/prob/exponential_lpdf.hpp
+ecbf79bd05a14f9ac56093e4451976ff *inst/include/stan/math/prim/prob/exponential_lpdf.hpp
 503d444f99091607998810a986183fdd *inst/include/stan/math/prim/prob/exponential_rng.hpp
 47b524384e72c0dda8d3551921663f75 *inst/include/stan/math/prim/prob/frechet_ccdf_log.hpp
 066ca4f03fba9304ea27f9d72a47352b *inst/include/stan/math/prim/prob/frechet_cdf.hpp
@@ -2367,7 +2367,7 @@ ab51b24689201b83d9b9fc1da4d3563d *inst/include/sunmemory/sunmemory_cuda.h
 8268fc7db8dfaf79cea74342ce1025ae *inst/include/sunnonlinsol/sunnonlinsol_fixedpoint.h
 e18d80afadc70d45b553a67f9a222988 *inst/include/sunnonlinsol/sunnonlinsol_newton.h
 ae6fe37cb42e159ecaad7594ac439d1d *inst/include/sunnonlinsol/sunnonlinsol_petscsnes.h
-33b35f3aaadaa80d66184cdecf9a1850 *inst/stanc.js
+79df6fafa439411fdafc51eade19c40a *inst/stanc.js
 ea5e3433950f612f657da746ebfddef0 *man/CxxFlags.Rd
 1543f396354b61b30e2ceea1c96c2187 *man/stanFunction.Rd
 23d8ddd471b02ed38b0245d3f4e9e075 *src/Makevars
@@ -2596,4 +2596,4 @@ c7e03832af5eeee77deb8329a003536a *src/sunnonlinsol/newton/fsunnonlinsol_newton.h
 a14c6365e6bbca755157a3133d8507e5 *src/sunnonlinsol/petscsnes/sunnonlinsol_petscsnes.c
 54cf10ca5ac7b36b45a9796ab12a1bfb *tests/rstan.R
 d9f299a822d38c4fd8a3eb612ba4bbfd *vignettes/sparselm_stan.hpp
-837ec79e46c062b60ebcbad9a2889f81 *vignettes/stanmath.Rmd
+4834c77acee496fb70ec6f9d0a39ae9d *vignettes/stanmath.Rmd

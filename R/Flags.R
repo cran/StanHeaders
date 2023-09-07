@@ -6,9 +6,9 @@ CxxFlags <- function(as_character = FALSE) {
   }
 
   if (file.exists(file.path(TBB_INC, "tbb", "version.h"))) {
-    CXXFLAGS <- paste0("-I", shQuote(TBB_INC), " -D_REENTRANT -DSTAN_THREADS -DTBB_INTERFACE_NEW -D_HAS_AUTO_PTR_ETC=0")
+    CXXFLAGS <- paste0("-I", shQuote(TBB_INC), " -D_REENTRANT -DSTAN_THREADS -DTBB_INTERFACE_NEW")
   } else {
-    CXXFLAGS <- paste0("-I", shQuote(TBB_INC), " -D_REENTRANT -DSTAN_THREADS -D_HAS_AUTO_PTR_ETC=0")
+    CXXFLAGS <- paste0("-I", shQuote(TBB_INC), " -D_REENTRANT -DSTAN_THREADS")
   }
 
   if (isTRUE(as_character)) return(CXXFLAGS)
