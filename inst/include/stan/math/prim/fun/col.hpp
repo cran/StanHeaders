@@ -20,14 +20,10 @@ namespace math {
  * @return Specified column of the matrix.
  * @throw std::out_of_range if j is out of range.
  */
-template <typename T, typename = require_eigen_t<T>>
+template <typename T, require_matrix_t<T>* = nullptr>
 inline auto col(const T& m, size_t j) {
   check_column_index("col", "j", m, j);
-#ifdef USE_STANC3
   return m.col(j - 1);
-#else
-  return m.col(j - 1).eval();
-#endif
 }
 
 }  // namespace math

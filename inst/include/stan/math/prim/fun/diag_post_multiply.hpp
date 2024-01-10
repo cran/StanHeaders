@@ -20,15 +20,12 @@ namespace math {
  * vector or row_vector.
  */
 template <typename T1, typename T2, require_eigen_t<T1>* = nullptr,
-          require_eigen_vector_t<T2>* = nullptr>
+          require_eigen_vector_t<T2>* = nullptr,
+          require_all_not_st_var<T1, T2>* = nullptr>
 auto diag_post_multiply(const T1& m1, const T2& m2) {
   check_size_match("diag_post_multiply", "m2.size()", m2.size(), "m1.cols()",
                    m1.cols());
-#ifdef USE_STANC3
   return m1 * m2.asDiagonal();
-#else
-  return (m1 * m2.asDiagonal()).eval();
-#endif
 }
 
 }  // namespace math

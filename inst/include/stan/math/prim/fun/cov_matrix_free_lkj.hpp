@@ -27,7 +27,6 @@ namespace math {
  * @throw std::runtime_error if the correlation matrix cannot be
  *    factorized by factor_cov_matrix()
  */
-#ifdef USE_STANC3
 template <typename T, require_eigen_t<T>* = nullptr>
 Eigen::Matrix<value_type_t<T>, Eigen::Dynamic, 1> cov_matrix_free_lkj(
     const T& y) {
@@ -49,37 +48,19 @@ Eigen::Matrix<value_type_t<T>, Eigen::Dynamic, 1> cov_matrix_free_lkj(
   }
   return x;
 }
-#else
-template <typename T>
-Eigen::Matrix<T, Eigen::Dynamic, 1> cov_matrix_free_lkj(
-    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& y) {
-  using Eigen::Array;
-  using Eigen::Dynamic;
-  using Eigen::Matrix;
-  using size_type = typename index_type<Matrix<T, Dynamic, Dynamic> >::type;
 
-  check_nonzero_size("cov_matrix_free_lkj", "y", y);
-  check_square("cov_matrix_free_lkj", "y", y);
-  size_type k = y.rows();
-  size_type k_choose_2 = (k * (k - 1)) / 2;
-  Array<T, Dynamic, 1> cpcs(k_choose_2);
-  Array<T, Dynamic, 1> sds(k);
-  bool successful = factor_cov_matrix(y, cpcs, sds);
-  if (!successful) {
-    domain_error("cov_matrix_free_lkj", "factor_cov_matrix failed on y", "",
-                 "");
-  }
-  Matrix<T, Dynamic, 1> x(k_choose_2 + k);
-  size_type pos = 0;
-  for (size_type i = 0; i < k_choose_2; ++i) {
-    x[pos++] = cpcs[i];
-  }
-  for (size_type i = 0; i < k; ++i) {
-    x[pos++] = sds[i];
-  }
-  return x;
+/**
+ * Overload of `cov_matrix_free_lkj()` to untransform each matrix
+ * in a standard vector.
+ * @tparam T A standard vector with with a `value_type` which inherits from
+ *  `Eigen::MatrixBase`.
+ * @param x The standard vector to untransform.
+ */
+template <typename T, require_std_vector_t<T>* = nullptr>
+auto cov_matrix_free_lkj(const T& x) {
+  return apply_vector_unary<T>::apply(
+      x, [](auto&& v) { return cov_matrix_free_lkj(v); });
 }
-#endif
 
 }  // namespace math
 }  // namespace stan

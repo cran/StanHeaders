@@ -18,7 +18,7 @@ namespace math {
  */
 struct erfc_fun {
   template <typename T>
-  static inline T fun(const T& x) {
+  static inline auto fun(const T& x) {
     using std::erfc;
     return erfc(x);
   }
@@ -32,8 +32,10 @@ struct erfc_fun {
  * @param x container
  * @return Complementary error function applied to each value in x.
  */
-template <typename T, require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
-                          T>* = nullptr>
+template <
+    typename T,
+    require_all_not_nonscalar_prim_or_rev_kernel_expression_t<T>* = nullptr,
+    require_not_var_matrix_t<T>* = nullptr>
 inline auto erfc(const T& x) {
   return apply_scalar_unary<erfc_fun, T>::apply(x);
 }

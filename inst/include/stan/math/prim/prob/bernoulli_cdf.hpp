@@ -9,7 +9,7 @@
 #include <stan/math/prim/fun/size.hpp>
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 
 namespace stan {
 namespace math {
@@ -26,7 +26,9 @@ namespace math {
  * @throw std::domain_error if theta is not a valid probability
  * @throw std::invalid_argument if container sizes mismatch.
  */
-template <typename T_n, typename T_prob>
+template <typename T_n, typename T_prob,
+          require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
+              T_n, T_prob>* = nullptr>
 return_type_t<T_prob> bernoulli_cdf(const T_n& n, const T_prob& theta) {
   using T_partials_return = partials_return_t<T_n, T_prob>;
   using T_theta_ref = ref_type_t<T_prob>;
@@ -34,14 +36,15 @@ return_type_t<T_prob> bernoulli_cdf(const T_n& n, const T_prob& theta) {
   check_consistent_sizes(function, "Random variable", n,
                          "Probability parameter", theta);
   T_theta_ref theta_ref = theta;
-  check_bounded(function, "Probability parameter", theta_ref, 0.0, 1.0);
+  check_bounded(function, "Probability parameter", value_of(theta_ref), 0.0,
+                1.0);
 
   if (size_zero(n, theta)) {
     return 1.0;
   }
 
   T_partials_return P(1.0);
-  operands_and_partials<T_theta_ref> ops_partials(theta_ref);
+  auto ops_partials = make_partials_propagator(theta_ref);
 
   scalar_seq_view<T_n> n_vec(n);
   scalar_seq_view<T_theta_ref> theta_vec(theta_ref);
@@ -67,13 +70,13 @@ return_type_t<T_prob> bernoulli_cdf(const T_n& n, const T_prob& theta) {
     P *= Pi;
 
     if (!is_constant_all<T_prob>::value) {
-      ops_partials.edge1_.partials_[i] += -1 / Pi;
+      partials<0>(ops_partials)[i] += -1 / Pi;
     }
   }
 
   if (!is_constant_all<T_prob>::value) {
     for (size_t i = 0; i < stan::math::size(theta); ++i) {
-      ops_partials.edge1_.partials_[i] *= P;
+      partials<0>(ops_partials)[i] *= P;
     }
   }
   return ops_partials.build(P);

@@ -5,50 +5,16 @@
 #include <stan/callbacks/logger.hpp>
 #include <stan/callbacks/writer.hpp>
 #include <stan/io/array_var_context.hpp>
+#include <stan/math/prim.hpp>
 #include <stan/services/error_codes.hpp>
 #include <stan/services/util/create_rng.hpp>
 #include <stan/services/util/gq_writer.hpp>
-#include <stan/math/prim/fun/Eigen.hpp>
-#include <boost/algorithm/string.hpp>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 namespace stan {
 namespace services {
-
-/**
- * Find the names, dimensions of the model parameters.
- * Assembles vectors of name, dimensions for the variables
- * declared in the parameters block.
- *
- * @tparam Model type of model
- * @param[in] model model to query
- * @param[in, out] param_names sequence of parameter names
- * @param[in, out] param_dimss sequence of variable dimensionalities
- */
-template <class Model>
-void get_model_parameters(const Model &model,
-                          std::vector<std::string> &param_names,
-                          std::vector<std::vector<size_t>> &param_dimss) {
-  std::vector<std::string> param_cols;
-  model.constrained_param_names(param_cols, false, false);
-  std::string cur_name("");
-  std::vector<std::string> splits;
-  for (size_t i = 0; i < param_cols.size(); ++i) {
-    boost::algorithm::split(splits, param_cols[i], boost::is_any_of("."));
-    if (splits.size() == 1 || splits[0] != cur_name) {
-      cur_name = splits[0];
-      param_names.emplace_back(cur_name);
-    }
-  }
-  size_t num_params = param_names.size();
-  std::vector<std::vector<size_t>> dimss;
-  model.get_dims(dimss);
-  for (size_t i = 0; i < num_params; ++i) {
-    param_dimss.emplace_back(dimss[i]);
-  }
-}
 
 /**
  * Given a set of draws from a fitted model, generate corresponding
@@ -98,20 +64,14 @@ int standalone_generate(const Model &model, const Eigen::MatrixXd &draws,
   writer.write_gq_names(model);
 
   boost::ecuyer1988 rng = util::create_rng(seed, 1);
-  std::vector<std::string> param_names;
-  std::vector<std::vector<size_t>> param_dimss;
-  get_model_parameters(model, param_names, param_dimss);
 
-  std::vector<int> dummy_params_i;
   std::vector<double> unconstrained_params_r;
+  std::vector<double> row(draws.cols());
+
   for (size_t i = 0; i < draws.rows(); ++i) {
-    dummy_params_i.clear();
-    unconstrained_params_r.clear();
+    Eigen::Map<Eigen::VectorXd>(&row[0], draws.cols()) = draws.row(i);
     try {
-      stan::io::array_var_context context(param_names, draws.row(i),
-                                          param_dimss);
-      model.transform_inits(context, dummy_params_i, unconstrained_params_r,
-                            &msg);
+      model.unconstrain_array(row, unconstrained_params_r, &msg);
     } catch (const std::exception &e) {
       if (msg.str().length() > 0)
         logger.error(msg);
@@ -122,6 +82,42 @@ int standalone_generate(const Model &model, const Eigen::MatrixXd &draws,
     writer.write_gq_values(model, rng, unconstrained_params_r);
   }
   return error_codes::OK;
+}
+
+/**
+ * DEPRECATED: This function assumes dimensions are rectangular,
+ * a restriction which the Stan language may soon relax.
+ *
+ * Find the names, dimensions of the model parameters.
+ * Assembles vectors of name, dimensions for the variables
+ * declared in the parameters block.
+ *
+ * @tparam Model type of model
+ * @param[in] model model to query
+ * @param[in, out] param_names sequence of parameter names
+ * @param[in, out] param_dimss sequence of variable dimensionalities
+ */
+template <class Model>
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((deprecated))
+#elif defined(_MSC_VER)
+__declspec(deprecated)
+#endif
+void get_model_parameters(const Model &model,
+                          std::vector<std::string> &param_names,
+                          std::vector<std::vector<size_t>> &param_dimss) {
+  std::vector<std::string> all_param_names;
+  model.get_param_names(all_param_names, false, false);
+  std::vector<std::vector<size_t>> dimss;
+  model.get_dims(dimss, false, false);
+  // remove zero-size
+  for (size_t i = 0; i < all_param_names.size(); i++) {
+    auto &v = dimss[i];
+    if (std::find(v.begin(), v.end(), 0) == v.end()) {
+      param_names.emplace_back(all_param_names[i]);
+      param_dimss.emplace_back(dimss[i]);
+    }
+  }
 }
 
 }  // namespace services

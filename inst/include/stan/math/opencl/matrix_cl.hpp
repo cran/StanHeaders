@@ -11,7 +11,7 @@
 #include <stan/math/prim/meta.hpp>
 #include <stan/math/prim/fun/Eigen.hpp>
 #include <stan/math/prim/fun/vec_concat.hpp>
-#include <CL/cl2.hpp>
+#include <CL/opencl.hpp>
 #include <algorithm>
 #include <iostream>
 #include <string>
@@ -31,7 +31,11 @@ namespace math {
  *  @{
  */
 
-template <typename, typename = void>
+// forward declare
+template <typename T>
+class arena_matrix_cl;
+
+template <typename>
 class matrix_cl;
 
 /**
@@ -39,7 +43,7 @@ class matrix_cl;
  * @tparam T an arithmetic type for the type stored in the OpenCL buffer.
  */
 template <typename T>
-class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
+class matrix_cl : public matrix_cl_base {
  private:
   cl::Buffer buffer_cl_;  // Holds the allocated memory on the device
   int rows_{0};           // Number of rows.
@@ -55,8 +59,6 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
   // Forward declare the methods that work in place on the matrix
   template <matrix_cl_view matrix_view = matrix_cl_view::Entire>
   inline void zeros_strict_tri();
-  template <TriangularMapCL triangular_map = TriangularMapCL::LowerToUpper>
-  inline void triangular_transpose();
 
   int rows() const { return rows_; }
 
@@ -197,7 +199,9 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
     if (A.size() == 0) {
       return;
     }
-    initialize_buffer(A);
+    buffer_cl_ = cl::Buffer(opencl_context.context(), CL_MEM_READ_WRITE,
+                            sizeof(T) * this->size());
+    initialize_buffer_cl(A);
   }
 
   /**
@@ -211,6 +215,13 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
         view_(A.view_),
         write_events_(std::move(A.write_events_)),
         read_events_(std::move(A.read_events_)) {}
+
+  /**
+   * Constructor from `arena_matrix_cl`.
+   * @param A matrix_cl to move
+   */
+  // defined in rev/arena_matrix_cl.hpp
+  matrix_cl(const arena_matrix_cl<T>& A);  // NOLINT(runtime/explicit)
 
   /**
    * Constructor for the matrix_cl that creates a copy of a std::vector of Eigen
@@ -415,8 +426,10 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
    * @tparam Expr type of the expression
    * @param expression expression
    */
+  // defined in kernel_generator/matrix_cl_conversion.hpp
   template <typename Expr,
-            require_all_kernel_expressions_and_none_scalar_t<Expr>* = nullptr>
+            require_all_kernel_expressions_and_none_scalar_t<Expr>* = nullptr,
+            require_not_matrix_cl_t<Expr>* = nullptr>
   matrix_cl(const Expr& expression);  // NOLINT(runtime/explicit)
 
   /**
@@ -438,13 +451,19 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
    */
   matrix_cl<T>& operator=(const matrix_cl<T>& a) {
     this->view_ = a.view();
-    this->rows_ = a.rows();
-    this->cols_ = a.cols();
     if (a.size() == 0) {
+      this->rows_ = a.rows();
+      this->cols_ = a.cols();
       return *this;
     }
     this->wait_for_read_write_events();
-    initialize_buffer(a);
+    if (this->size() != a.size()) {
+      buffer_cl_ = cl::Buffer(opencl_context.context(), CL_MEM_READ_WRITE,
+                              sizeof(T) * a.size());
+    }
+    this->rows_ = a.rows();
+    this->cols_ = a.cols();
+    initialize_buffer_cl(a);
     return *this;
   }
 
@@ -454,9 +473,19 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
    * @tparam Expr type of the expression
    * @param expression expression
    */
+  // defined in kernel_generator/matrix_cl_conversion.hpp
   template <typename Expr,
-            require_all_kernel_expressions_and_none_scalar_t<Expr>* = nullptr>
+            require_all_kernel_expressions_and_none_scalar_t<Expr>* = nullptr,
+            require_not_matrix_cl_t<Expr>* = nullptr>
   matrix_cl<T>& operator=(const Expr& expression);
+
+  /**
+   * Assignment of `arena_matrix_cl<T>`.
+   * @tparam T type of matrix
+   * @param other matrix
+   */
+  // defined in rev/arena_matrix_cl.hpp
+  matrix_cl<T>& operator=(const arena_matrix_cl<T>& other);
 
   /**
    * Evaluates `this`. This is a no-op.
@@ -516,8 +545,11 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
     cl::CommandQueue& queue = opencl_context.queue();
     try {
       if (opencl_context.device()[0].getInfo<CL_DEVICE_HOST_UNIFIED_MEMORY>()) {
+        constexpr auto copy_or_share
+            = CL_MEM_COPY_HOST_PTR * INTEGRATED_OPENCL
+              | (CL_MEM_USE_HOST_PTR * !INTEGRATED_OPENCL);
         buffer_cl_
-            = cl::Buffer(ctx, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+            = cl::Buffer(ctx, CL_MEM_READ_WRITE | copy_or_share,
                          sizeof(T) * size(), A);  // this is always synchronous
       } else {
         buffer_cl_ = cl::Buffer(ctx, CL_MEM_READ_WRITE, sizeof(T) * size());
@@ -582,15 +614,12 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
    * size of given matrix.
    * @param A matrix_cl
    */
-  void initialize_buffer(const matrix_cl<T>& A) {
-    cl::Context& ctx = opencl_context.context();
-    cl::CommandQueue queue = opencl_context.queue();
+  void initialize_buffer_cl(const matrix_cl<T>& A) {
     try {
-      buffer_cl_ = cl::Buffer(ctx, CL_MEM_READ_WRITE, sizeof(T) * this->size());
       cl::Event cstr_event;
-      queue.enqueueCopyBuffer(A.buffer(), this->buffer(), 0, 0,
-                              A.size() * sizeof(T), &A.write_events(),
-                              &cstr_event);
+      opencl_context.queue().enqueueCopyBuffer(A.buffer(), this->buffer(), 0, 0,
+                                               A.size() * sizeof(T),
+                                               &A.write_events(), &cstr_event);
       this->add_write_event(cstr_event);
       A.add_read_event(cstr_event);
     } catch (const cl::Error& e) {
@@ -621,13 +650,6 @@ class matrix_cl<T, require_arithmetic_t<T>> : public matrix_cl_base {
     delete static_cast<U*>(container);
   }
 };
-
-template <typename T>
-using matrix_cl_prim = matrix_cl<T, require_arithmetic_t<T>>;
-
-template <typename T>
-using matrix_cl_fp = matrix_cl<T, require_floating_point_t<T>>;
-
 /** @}*/
 
 }  // namespace math

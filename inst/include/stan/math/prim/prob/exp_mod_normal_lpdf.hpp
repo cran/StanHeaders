@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/erfc.hpp>
 #include <stan/math/prim/fun/exp.hpp>
@@ -15,7 +16,7 @@
 #include <stan/math/prim/fun/square.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
@@ -43,20 +44,11 @@ return_type_t<T_y, T_loc, T_scale, T_inv_scale> exp_mod_normal_lpdf(
   T_sigma_ref sigma_ref = sigma;
   T_lambda_ref lambda_ref = lambda;
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& mu_col = as_column_vector_or_scalar(mu_ref);
-  const auto& sigma_col = as_column_vector_or_scalar(sigma_ref);
-  const auto& lambda_col = as_column_vector_or_scalar(lambda_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& mu_arr = as_array_or_scalar(mu_col);
-  const auto& sigma_arr = as_array_or_scalar(sigma_col);
-  const auto& lambda_arr = as_array_or_scalar(lambda_col);
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(mu_arr))> mu_val = value_of(mu_arr);
-  ref_type_t<decltype(value_of(sigma_arr))> sigma_val = value_of(sigma_arr);
-  ref_type_t<decltype(value_of(lambda_arr))> lambda_val = value_of(lambda_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) mu_val = to_ref(as_value_column_array_or_scalar(mu_ref));
+  decltype(auto) sigma_val = to_ref(as_value_column_array_or_scalar(sigma_ref));
+  decltype(auto) lambda_val
+      = to_ref(as_value_column_array_or_scalar(lambda_ref));
 
   check_not_nan(function, "Random variable", y_val);
   check_finite(function, "Location parameter", mu_val);
@@ -93,8 +85,9 @@ return_type_t<T_y, T_loc, T_scale, T_inv_scale> exp_mod_normal_lpdf(
   logp
       += sum(lambda_val * (mu_minus_y + 0.5 * lambda_sigma_sq) + log_erfc_calc);
 
-  operands_and_partials<T_y_ref, T_mu_ref, T_sigma_ref, T_lambda_ref>
-      ops_partials(y_ref, mu_ref, sigma_ref, lambda_ref);
+  auto ops_partials
+      = make_partials_propagator(y_ref, mu_ref, sigma_ref, lambda_ref);
+
   if (!is_constant_all<T_y, T_loc, T_scale, T_inv_scale>::value) {
     const auto& exp_m_sq_inner_term = exp(-square(inner_term));
     const auto& deriv_logerfc = to_ref_if<
@@ -106,20 +99,20 @@ return_type_t<T_y, T_loc, T_scale, T_inv_scale> exp_mod_normal_lpdf(
                           && !is_constant_all<T_loc>::value
                                  > (lambda_val + deriv_logerfc * inv_sigma);
       if (!is_constant_all<T_y>::value) {
-        ops_partials.edge1_.partials_ = -deriv;
+        partials<0>(ops_partials) = -deriv;
       }
       if (!is_constant_all<T_loc>::value) {
-        ops_partials.edge2_.partials_ = deriv;
+        partials<1>(ops_partials) = deriv;
       }
     }
     if (!is_constant_all<T_scale>::value) {
-      ops_partials.edge3_.partials_
+      edge<2>(ops_partials).partials_
           = sigma_val * square(lambda_val)
             + deriv_logerfc * (lambda_val - mu_minus_y / sigma_sq);
     }
     if (!is_constant_all<T_inv_scale>::value) {
-      ops_partials.edge4_.partials_ = inv(lambda_val) + lambda_sigma_sq
-                                      + mu_minus_y + deriv_logerfc * sigma_val;
+      partials<3>(ops_partials) = inv(lambda_val) + lambda_sigma_sq + mu_minus_y
+                                  + deriv_logerfc * sigma_val;
     }
   }
 

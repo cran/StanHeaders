@@ -18,16 +18,12 @@ namespace math {
  * @return The first n elements of v.
  * @throw std::out_of_range if n is out of range.
  */
-template <typename T, typename = require_eigen_vector_t<T>>
+template <typename T, require_vector_t<T>* = nullptr>
 inline auto head(const T& v, size_t n) {
   if (n != 0) {
     check_vector_index("head", "n", v, n);
   }
-#ifdef USE_STANC3
   return v.head(n);
-#else
-  return v.head(n).eval();
-#endif
 }
 
 /**

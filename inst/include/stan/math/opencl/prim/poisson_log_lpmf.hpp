@@ -7,7 +7,7 @@
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/log.hpp>
 #include <stan/math/opencl/kernel_generator.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 
 namespace stan {
 namespace math {
@@ -35,7 +35,6 @@ return_type_t<T_log_rate_cl> poisson_log_lpmf(const T_n_cl& n,
   using std::isinf;
   using std::isnan;
   constexpr bool is_n_vector = !is_stan_scalar<T_n_cl>::value;
-  constexpr bool is_alpha_vector = !is_stan_scalar<T_log_rate_cl>::value;
 
   check_consistent_sizes(function, "Random variable", n, "Log rate parameter",
                          alpha);
@@ -51,7 +50,7 @@ return_type_t<T_log_rate_cl> poisson_log_lpmf(const T_n_cl& n,
   const auto& alpha_val = value_of(alpha_col);
 
   T_partials_return logp(0.0);
-  operands_and_partials<decltype(alpha_col)> ops_partials(alpha_col);
+  auto ops_partials = make_partials_propagator(alpha_col);
 
   auto check_n_nonnegative
       = check_cl(function, "Random variable", n, "nonnegative");
@@ -60,8 +59,8 @@ return_type_t<T_log_rate_cl> poisson_log_lpmf(const T_n_cl& n,
       = check_cl(function, "Log rate parameter", alpha_val, "not nan");
   auto alpha_not_nan = !isnan(alpha_val);
 
-  auto return_log_zero = colwise_max(
-      constant(0, N, 1) + (isinf(alpha_val) && (alpha_val > 0 || n != 0)));
+  auto return_log_zero
+      = colwise_max(cast<char>(isinf(alpha_val) && (alpha_val > 0 || n != 0)));
   auto exp_alpha = exp(alpha_val);
 
   auto logp1 = elt_multiply(n, alpha_val);
@@ -72,7 +71,7 @@ return_type_t<T_log_rate_cl> poisson_log_lpmf(const T_n_cl& n,
 
   auto deriv = n - exp_alpha;
 
-  matrix_cl<int> return_log_zero_cl;
+  matrix_cl<char> return_log_zero_cl;
   matrix_cl<double> logp_cl;
   matrix_cl<double> deriv_cl;
 
@@ -88,7 +87,7 @@ return_type_t<T_log_rate_cl> poisson_log_lpmf(const T_n_cl& n,
   logp = sum(from_matrix_cl(logp_cl));
 
   if (!is_constant_all<T_log_rate_cl>::value) {
-    ops_partials.edge1_.partials_ = deriv_cl;
+    partials<0>(ops_partials) = deriv_cl;
   }
 
   return ops_partials.build(logp);

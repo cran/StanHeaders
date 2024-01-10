@@ -51,7 +51,7 @@ inline double Phi(double x) {
  */
 struct Phi_fun {
   template <typename T>
-  static inline T fun(const T& x) {
+  static inline auto fun(const T& x) {
     return Phi(x);
   }
 };
@@ -63,8 +63,10 @@ struct Phi_fun {
  * @param x container
  * @return Unit normal CDF of each value in x.
  */
-template <typename T, require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
-                          T>* = nullptr>
+template <
+    typename T,
+    require_all_not_nonscalar_prim_or_rev_kernel_expression_t<T>* = nullptr,
+    require_not_var_matrix_t<T>* = nullptr>
 inline auto Phi(const T& x) {
   return apply_scalar_unary<Phi_fun, T>::apply(x);
 }

@@ -3,25 +3,29 @@
 
 #include <stan/math/prim/meta.hpp>
 #include <stan/math/prim/fun/Eigen.hpp>
+#include <stan/math/prim/functor/for_each.hpp>
 #include <vector>
 
 namespace stan {
 namespace math {
 // prints used in generator for print() statements in modeling language
 
-template <typename T, require_not_container_t<T>* = nullptr>
+template <typename T, require_not_container_t<T>* = nullptr,
+          require_not_tuple_t<T>* = nullptr>
 void stan_print(std::ostream* o, const T& x) {
   *o << x;
 }
 
 template <typename EigVec, require_eigen_vector_t<EigVec>* = nullptr>
 void stan_print(std::ostream* o, const EigVec& x) {
+  const auto& x_ref = to_ref(x);
+
   *o << '[';
-  for (int i = 0; i < x.size(); ++i) {
+  for (int i = 0; i < x_ref.size(); ++i) {
     if (i > 0) {
       *o << ',';
     }
-    stan_print(o, x(i));
+    stan_print(o, x_ref.coeff(i));
   }
   *o << ']';
 }
@@ -29,25 +33,31 @@ void stan_print(std::ostream* o, const EigVec& x) {
 template <typename EigMat, require_eigen_t<EigMat>* = nullptr,
           require_not_eigen_vector_t<EigMat>* = nullptr>
 void stan_print(std::ostream* o, const EigMat& x) {
+  const auto& x_ref = to_ref(x);
+
   *o << '[';
-  for (int i = 0; i < x.rows(); ++i) {
+  for (int i = 0; i < x_ref.rows(); ++i) {
     if (i > 0) {
       *o << ',';
     }
     *o << '[';
-    for (int j = 0; j < x.cols(); ++j) {
+    for (int j = 0; j < x_ref.cols(); ++j) {
       if (j > 0) {
         *o << ',';
       }
-      stan_print(o, x.coeff(i, j));
+      stan_print(o, x_ref.coeff(i, j));
     }
     *o << ']';
   }
   *o << ']';
 }
 
-template <typename T>
-void stan_print(std::ostream* o, const std::vector<T>& x) {
+// forward decl to allow the next two overloads to call each other
+template <typename T, require_tuple_t<T>* = nullptr>
+void stan_print(std::ostream* o, const T& x);
+
+template <typename T, require_std_vector_t<T>* = nullptr>
+void stan_print(std::ostream* o, const T& x) {
   *o << '[';
   for (size_t i = 0; i < x.size(); ++i) {
     if (i > 0) {
@@ -56,6 +66,22 @@ void stan_print(std::ostream* o, const std::vector<T>& x) {
     stan_print(o, x[i]);
   }
   *o << ']';
+}
+
+template <typename T, require_tuple_t<T>*>
+void stan_print(std::ostream* o, const T& x) {
+  *o << '(';
+  size_t i = 0;
+  stan::math::for_each(
+      [&i, o](auto&& elt) {
+        if (i > 0) {
+          *o << ',';
+        }
+        stan_print(o, elt);
+        i++;
+      },
+      x);
+  *o << ')';
 }
 
 }  // namespace math

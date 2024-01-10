@@ -3,10 +3,11 @@
 
 #include <stan/math/prim/functor/coupled_ode_system.hpp>
 #include <stan/math/rev/functor/cvodes_utils.hpp>
-#include <stan/math/prim/functor/apply.hpp>
 #include <stan/math/rev/meta.hpp>
 #include <stan/math/rev/core.hpp>
 #include <stan/math/rev/fun/value_of.hpp>
+#include <stan/math/prim/functor/apply.hpp>
+#include <stan/math/prim/functor/for_each.hpp>
 #include <stan/math/prim/err.hpp>
 #include <stdexcept>
 #include <ostream>
@@ -125,9 +126,9 @@ struct coupled_ode_system_impl<false, F, T_y0, Args...> {
     for (size_t n = 0; n < N_; ++n)
       y_vars.coeffRef(n) = z[n];
 
-    Eigen::Matrix<var, Eigen::Dynamic, 1> f_y_t_vars
-        = math::apply([&](auto&&... args) { return f_(t, y_vars, msgs_, args...); },
-                local_args_tuple_);
+    Eigen::Matrix<var, Eigen::Dynamic, 1> f_y_t_vars = math::apply(
+        [&](auto&&... args) { return f_(t, y_vars, msgs_, args...); },
+        local_args_tuple_);
 
     check_size_match("coupled_ode_system", "dy_dt", f_y_t_vars.size(), "states",
                      N_);
@@ -138,8 +139,10 @@ struct coupled_ode_system_impl<false, F, T_y0, Args...> {
 
       y_adjoints_ = y_vars.adj();
 
-      // memset was faster than Eigen setZero
-      memset(args_adjoints_.data(), 0, sizeof(double) * num_args_vars);
+      if (args_adjoints_.size() > 0) {
+        memset(args_adjoints_.data(), 0,
+               sizeof(double) * args_adjoints_.size());
+      }
 
       math::apply(
           [&](auto&&... args) {
@@ -149,7 +152,8 @@ struct coupled_ode_system_impl<false, F, T_y0, Args...> {
 
       // The vars here do not live on the nested stack so must be zero'd
       // separately
-      math::apply([&](auto&&... args) { zero_adjoints(args...); }, local_args_tuple_);
+      stan::math::for_each([](auto&& arg) { zero_adjoints(arg); },
+                           local_args_tuple_);
 
       // No need to zero adjoints after last sweep
       if (i + 1 < N_) {

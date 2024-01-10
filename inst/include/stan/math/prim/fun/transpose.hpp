@@ -13,13 +13,9 @@ namespace math {
  * @param m matrix or expression
  * @return transposed matrix
  */
-template <typename T, typename = require_eigen_t<T>>
+template <typename T, require_matrix_t<T>* = nullptr>
 auto inline transpose(const T& m) {
-#ifdef USE_STANC3
   return m.transpose();
-#else
-  return m.transpose().eval();
-#endif
 }
 
 }  // namespace math

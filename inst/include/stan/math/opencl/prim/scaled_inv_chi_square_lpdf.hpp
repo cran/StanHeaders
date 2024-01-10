@@ -8,7 +8,7 @@
 #include <stan/math/prim/fun/elt_divide.hpp>
 #include <stan/math/prim/fun/elt_multiply.hpp>
 #include <stan/math/opencl/kernel_generator.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 
 namespace stan {
 namespace math {
@@ -76,7 +76,7 @@ inline return_type_t<T_y_cl, T_dof_cl, T_scale_cl> scaled_inv_chi_square_lpdf(
       = check_cl(function, "Scale parameter", s_val, "positive finite");
   auto s_positive_finite = isfinite(s_val) && 0 < s_val;
 
-  auto any_y_nonpositive = colwise_max(constant(0, N, 1) + (y_val <= 0.0));
+  auto any_y_nonpositive = colwise_max(cast<char>(y_val <= 0.0));
   auto half_nu = 0.5 * nu_val;
   auto log_y = log(y_val);
   auto inv_y = elt_divide(1.0, y_val);
@@ -106,7 +106,7 @@ inline return_type_t<T_y_cl, T_dof_cl, T_scale_cl> scaled_inv_chi_square_lpdf(
   auto s_deriv = elt_divide(nu_val, s_val)
                  - elt_multiply(elt_multiply(nu_val, inv_y), s_val);
 
-  matrix_cl<int> any_y_nonpositive_cl;
+  matrix_cl<char> any_y_nonpositive_cl;
   matrix_cl<double> logp_cl;
   matrix_cl<double> nu_deriv_cl;
   matrix_cl<double> y_deriv_cl;
@@ -126,17 +126,16 @@ inline return_type_t<T_y_cl, T_dof_cl, T_scale_cl> scaled_inv_chi_square_lpdf(
 
   T_partials_return logp = sum(from_matrix_cl(logp_cl));
 
-  operands_and_partials<decltype(y_col), decltype(nu_col), decltype(s_col)>
-      ops_partials(y_col, nu_col, s_col);
+  auto ops_partials = make_partials_propagator(y_col, nu_col, s_col);
 
   if (!is_constant<T_y_cl>::value) {
-    ops_partials.edge1_.partials_ = std::move(y_deriv_cl);
+    partials<0>(ops_partials) = std::move(y_deriv_cl);
   }
   if (!is_constant<T_dof_cl>::value) {
-    ops_partials.edge2_.partials_ = std::move(nu_deriv_cl);
+    partials<1>(ops_partials) = std::move(nu_deriv_cl);
   }
   if (!is_constant<T_scale_cl>::value) {
-    ops_partials.edge3_.partials_ = std::move(s_deriv_cl);
+    partials<2>(ops_partials) = std::move(s_deriv_cl);
   }
   return ops_partials.build(logp);
 }

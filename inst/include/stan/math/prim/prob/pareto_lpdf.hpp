@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/log.hpp>
 #include <stan/math/prim/fun/max_size.hpp>
@@ -13,7 +14,7 @@
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
@@ -41,17 +42,9 @@ return_type_t<T_y, T_scale, T_shape> pareto_lpdf(const T_y& y,
   T_y_min_ref y_min_ref = y_min;
   T_alpha_ref alpha_ref = alpha;
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& y_min_col = as_column_vector_or_scalar(y_min_ref);
-  const auto& alpha_col = as_column_vector_or_scalar(alpha_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& y_min_arr = as_array_or_scalar(y_min_col);
-  const auto& alpha_arr = as_array_or_scalar(alpha_col);
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(y_min_arr))> y_min_val = value_of(y_min_arr);
-  ref_type_t<decltype(value_of(alpha_arr))> alpha_val = value_of(alpha_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) y_min_val = to_ref(as_value_column_array_or_scalar(y_min_ref));
+  decltype(auto) alpha_val = to_ref(as_value_column_array_or_scalar(alpha_ref));
 
   check_not_nan(function, "Random variable", y_val);
   check_positive_finite(function, "Scale parameter", y_min_val);
@@ -76,15 +69,14 @@ return_type_t<T_y, T_scale, T_shape> pareto_lpdf(const T_y& y,
     logp -= sum(alpha_val * log_y + log_y) * N / max_size(alpha, y);
   }
 
-  operands_and_partials<T_y_ref, T_y_min_ref, T_alpha_ref> ops_partials(
-      y_ref, y_min_ref, alpha_ref);
+  auto ops_partials = make_partials_propagator(y_ref, y_min_ref, alpha_ref);
   if (!is_constant_all<T_y>::value) {
     const auto& inv_y = inv(y_val);
-    ops_partials.edge1_.partials_
+    edge<0>(ops_partials).partials_
         = -(alpha_val * inv_y + inv_y) * N / max_size(alpha, y);
   }
   if (!is_constant_all<T_scale>::value) {
-    ops_partials.edge2_.partials_
+    edge<1>(ops_partials).partials_
         = alpha_val / y_min_val * N / max_size(alpha, y_min);
   }
   if (include_summand<propto, T_scale, T_shape>::value) {
@@ -92,7 +84,7 @@ return_type_t<T_y, T_scale, T_shape> pareto_lpdf(const T_y& y,
         = to_ref_if<!is_constant_all<T_shape>::value>(log(y_min_val));
     logp += sum(alpha_val * log_y_min) * N / max_size(alpha, y_min);
     if (!is_constant_all<T_shape>::value) {
-      ops_partials.edge3_.partials_ = inv(alpha_val) + log_y_min - log_y;
+      partials<2>(ops_partials) = inv(alpha_val) + log_y_min - log_y;
     }
   }
 

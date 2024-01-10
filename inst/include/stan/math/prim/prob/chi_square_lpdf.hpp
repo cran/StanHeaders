@@ -4,7 +4,7 @@
 #include <stan/math/prim/meta.hpp>
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
-#include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/digamma.hpp>
 #include <stan/math/prim/fun/lgamma.hpp>
@@ -14,7 +14,7 @@
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
@@ -54,17 +54,10 @@ return_type_t<T_y, T_dof> chi_square_lpdf(const T_y& y, const T_dof& nu) {
                          "Degrees of freedom parameter", nu);
   T_y_ref y_ref = y;
   T_nu_ref nu_ref = nu;
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& nu_col = as_column_vector_or_scalar(nu_ref);
 
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& nu_arr = as_array_or_scalar(nu_col);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) nu_val = to_ref(as_value_column_array_or_scalar(nu_ref));
 
-  ref_type_if_t<include_summand<propto, T_y>::value, decltype(value_of(y_arr))>
-      y_val = value_of(y_arr);
-  ref_type_if_t<include_summand<propto, T_dof>::value,
-                decltype(value_of(nu_arr))>
-      nu_val = value_of(nu_arr);
   check_nonnegative(function, "Random variable", y_val);
   check_positive_finite(function, "Degrees of freedom parameter", nu_val);
 
@@ -89,16 +82,16 @@ return_type_t<T_y, T_dof> chi_square_lpdf(const T_y& y, const T_dof& nu) {
     logp -= 0.5 * sum(y_val) * N / math::size(y);
   }
 
-  operands_and_partials<T_y_ref, T_nu_ref> ops_partials(y_ref, nu_ref);
+  auto ops_partials = make_partials_propagator(y_ref, nu_ref);
   if (!is_constant_all<T_y>::value) {
-    ops_partials.edge1_.partials_ = (half_nu - 1.0) / y_val - 0.5;
+    partials<0>(ops_partials) = (half_nu - 1.0) / y_val - 0.5;
   }
   if (!is_constant_all<T_dof>::value) {
     if (is_vector<T_dof>::value) {
-      ops_partials.edge2_.partials_ = forward_as<T_partials_array>(
+      partials<1>(ops_partials) = forward_as<T_partials_array>(
           (log_y - digamma(half_nu)) * 0.5 - HALF_LOG_TWO);
     } else {
-      ops_partials.edge2_.partials_[0]
+      partials<1>(ops_partials)[0]
           = sum(log_y - digamma(half_nu)) * 0.5 - HALF_LOG_TWO * N;
     }
   }

@@ -93,8 +93,16 @@ struct promote_scalar_type<T, S, require_eigen_t<S>> {
                    S::RowsAtCompileTime, S::ColsAtCompileTime>>::type;
 };
 
+template <typename... PromotionScalars, typename... UnPromotedTypes>
+struct promote_scalar_type<std::tuple<PromotionScalars...>,
+                           std::tuple<UnPromotedTypes...>> {
+  using type = std::tuple<typename promote_scalar_type<
+      std::decay_t<PromotionScalars>, std::decay_t<UnPromotedTypes>>::type...>;
+};
+
 template <typename T, typename S>
-using promote_scalar_t = typename promote_scalar_type<T, S>::type;
+using promote_scalar_t =
+    typename promote_scalar_type<std::decay_t<T>, std::decay_t<S>>::type;
 
 }  // namespace math
 }  // namespace stan

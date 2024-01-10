@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/eigen_comparisons.hpp>
 #include <stan/math/prim/fun/exp.hpp>
 #include <stan/math/prim/fun/inv.hpp>
@@ -12,7 +13,7 @@
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
@@ -32,7 +33,9 @@ namespace math {
  * @throw std::domain_error if y is nan, mu is infinite,
  *  or sigma is nonpositive
  */
-template <typename T_y, typename T_loc, typename T_scale>
+template <typename T_y, typename T_loc, typename T_scale,
+          require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
+              T_y, T_loc, T_scale>* = nullptr>
 return_type_t<T_y, T_loc, T_scale> double_exponential_cdf(
     const T_y& y, const T_loc& mu, const T_scale& sigma) {
   using T_partials_return = partials_return_t<T_y, T_loc, T_scale>;
@@ -51,20 +54,11 @@ return_type_t<T_y, T_loc, T_scale> double_exponential_cdf(
   T_sigma_ref sigma_ref = sigma;
 
   T_partials_return cdf(1.0);
-  operands_and_partials<T_y_ref, T_mu_ref, T_sigma_ref> ops_partials(
-      y_ref, mu_ref, sigma_ref);
+  auto ops_partials = make_partials_propagator(y_ref, mu_ref, sigma_ref);
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& mu_col = as_column_vector_or_scalar(mu_ref);
-  const auto& sigma_col = as_column_vector_or_scalar(sigma_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& mu_arr = as_array_or_scalar(mu_col);
-  const auto& sigma_arr = as_array_or_scalar(sigma_col);
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(mu_arr))> mu_val = value_of(mu_arr);
-  ref_type_t<decltype(value_of(sigma_arr))> sigma_val = value_of(sigma_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) mu_val = to_ref(as_value_column_array_or_scalar(mu_ref));
+  decltype(auto) sigma_val = to_ref(as_value_column_array_or_scalar(sigma_ref));
 
   check_not_nan(function, "Random variable", y_val);
   check_finite(function, "Location parameter", mu_val);
@@ -79,7 +73,6 @@ return_type_t<T_y, T_loc, T_scale> double_exponential_cdf(
       (y_val - mu_val) * inv_sigma);
   const auto& exp_scaled_diff = to_ref(exp(scaled_diff));
 
-  size_t N = max_size(y, mu, sigma);
   T_rep_deriv rep_deriv;
   if (is_vector<T_y>::value || is_vector<T_loc>::value) {
     using array_bool = Eigen::Array<bool, Eigen::Dynamic, 1>;
@@ -111,13 +104,13 @@ return_type_t<T_y, T_loc, T_scale> double_exponential_cdf(
   }
 
   if (!is_constant_all<T_y>::value) {
-    ops_partials.edge1_.partials_ = rep_deriv;
+    partials<0>(ops_partials) = rep_deriv;
   }
   if (!is_constant_all<T_loc>::value) {
-    ops_partials.edge2_.partials_ = -rep_deriv;
+    partials<1>(ops_partials) = -rep_deriv;
   }
   if (!is_constant_all<T_scale>::value) {
-    ops_partials.edge3_.partials_ = -rep_deriv * scaled_diff;
+    partials<2>(ops_partials) = -rep_deriv * scaled_diff;
   }
   return ops_partials.build(cdf);
 }

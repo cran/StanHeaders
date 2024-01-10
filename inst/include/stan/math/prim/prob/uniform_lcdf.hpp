@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/log.hpp>
 #include <stan/math/prim/fun/max_size.hpp>
@@ -12,13 +13,15 @@
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
 namespace math {
 
-template <typename T_y, typename T_low, typename T_high>
+template <typename T_y, typename T_low, typename T_high,
+          require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
+              T_y, T_low, T_high>* = nullptr>
 return_type_t<T_y, T_low, T_high> uniform_lcdf(const T_y& y, const T_low& alpha,
                                                const T_high& beta) {
   using T_partials_return = partials_return_t<T_y, T_low, T_high>;
@@ -33,17 +36,9 @@ return_type_t<T_y, T_low, T_high> uniform_lcdf(const T_y& y, const T_low& alpha,
   T_alpha_ref alpha_ref = alpha;
   T_beta_ref beta_ref = beta;
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& alpha_col = as_column_vector_or_scalar(alpha_ref);
-  const auto& beta_col = as_column_vector_or_scalar(beta_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& alpha_arr = as_array_or_scalar(alpha_col);
-  const auto& beta_arr = as_array_or_scalar(beta_col);
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(alpha_arr))> alpha_val = value_of(alpha_arr);
-  ref_type_t<decltype(value_of(beta_arr))> beta_val = value_of(beta_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) alpha_val = to_ref(as_value_column_array_or_scalar(alpha_ref));
+  decltype(auto) beta_val = to_ref(as_value_column_array_or_scalar(beta_ref));
 
   check_not_nan(function, "Random variable", y_val);
   check_finite(function, "Lower bound parameter", alpha_val);
@@ -59,8 +54,7 @@ return_type_t<T_y, T_low, T_high> uniform_lcdf(const T_y& y, const T_low& alpha,
     return negative_infinity();
   }
 
-  operands_and_partials<T_y_ref, T_alpha_ref, T_beta_ref> ops_partials(
-      y_ref, alpha_ref, beta_ref);
+  auto ops_partials = make_partials_propagator(y_ref, alpha_ref, beta_ref);
 
   const auto& b_minus_a
       = to_ref_if<!is_constant_all<T_y, T_low, T_high>::value>(beta_val
@@ -73,21 +67,21 @@ return_type_t<T_y, T_low, T_high> uniform_lcdf(const T_y& y, const T_low& alpha,
   if (!is_constant_all<T_y>::value) {
     if (!is_vector<T_y>::value && is_vector<T_high>::value
         && !is_vector<T_low>::value) {
-      ops_partials.edge1_.partials_ = math::size(beta) * inv(y_minus_alpha);
+      partials<0>(ops_partials) = math::size(beta) * inv(y_minus_alpha);
     } else {
-      ops_partials.edge1_.partials_ = inv(y_minus_alpha);
+      partials<0>(ops_partials) = inv(y_minus_alpha);
     }
   }
   if (!is_constant_all<T_low>::value) {
-    ops_partials.edge2_.partials_
+    edge<1>(ops_partials).partials_
         = (y_val - beta_val) / (b_minus_a * y_minus_alpha);
   }
   if (!is_constant_all<T_high>::value) {
     if (is_vector<T_y>::value && !is_vector<T_low>::value
         && !is_vector<T_high>::value) {
-      ops_partials.edge3_.partials_ = inv(-b_minus_a) * math::size(y);
+      partials<2>(ops_partials) = inv(-b_minus_a) * math::size(y);
     } else {
-      ops_partials.edge3_.partials_ = inv(-b_minus_a);
+      partials<2>(ops_partials) = inv(-b_minus_a);
     }
   }
   return ops_partials.build(cdf_log);

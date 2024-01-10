@@ -20,7 +20,7 @@ struct exp2_fun {
    * @return Base two exponent of the argument.
    */
   template <typename T>
-  static inline T fun(const T& x) {
+  static inline auto fun(const T& x) {
     using std::exp2;
     return exp2(x);
   }
@@ -35,8 +35,10 @@ struct exp2_fun {
  * @param x container
  * @return Elementwise exp2 of members of container.
  */
-template <typename T, require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
-                          T>* = nullptr>
+template <
+    typename T,
+    require_all_not_nonscalar_prim_or_rev_kernel_expression_t<T>* = nullptr,
+    require_not_var_matrix_t<T>* = nullptr>
 inline auto exp2(const T& x) {
   return apply_scalar_unary<exp2_fun, T>::apply(x);
 }

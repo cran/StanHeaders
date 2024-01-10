@@ -2,6 +2,7 @@
 #define STAN_IO_RANDOM_VAR_CONTEXT_HPP
 
 #include <stan/io/var_context.hpp>
+#include <stan/io/validate_dims.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include <algorithm>
 #include <limits>
@@ -42,25 +43,8 @@ class random_var_context : public var_context {
   random_var_context(Model& model, RNG& rng, double init_radius, bool init_zero)
       : unconstrained_params_(model.num_params_r()) {
     size_t num_unconstrained_ = model.num_params_r();
-    model.get_param_names(names_);
-    model.get_dims(dims_);
-
-    // cutting names_ and dims_ down to just the constrained parameters
-    std::vector<std::string> constrained_params_names;
-    model.constrained_param_names(constrained_params_names, false, false);
-    size_t keep = constrained_params_names.size();
-    size_t i = 0;
-    size_t num = 0;
-    for (i = 0; i < dims_.size(); ++i) {
-      size_t size = 1;
-      for (size_t n = 0; n < dims_[i].size(); ++n)
-        size *= dims_[i][n];
-      num += size;
-      if (num > keep)
-        break;
-    }
-    dims_.erase(dims_.begin() + i, dims_.end());
-    names_.erase(names_.begin() + i, names_.end());
+    model.get_param_names(names_, false, false);
+    model.get_dims(dims_, false, false);
 
     if (init_zero) {
       for (size_t n = 0; n < num_unconstrained_; ++n)
@@ -112,6 +96,25 @@ class random_var_context : public var_context {
     if (loc == names_.end())
       return std::vector<double>();
     return vals_r_[loc - names_.begin()];
+  }
+
+  std::vector<std::complex<double>> vals_c(const std::string& name) const {
+    std::vector<std::string>::const_iterator loc
+        = std::find(names_.begin(), names_.end(), name);
+    if (loc == names_.end()) {
+      return std::vector<std::complex<double>>();
+    } else {
+      const auto& val_r = vals_r_[loc - names_.begin()];
+      std::vector<std::complex<double>> ret_c(val_r.size() / 2);
+      int comp_iter;
+      int real_iter;
+      for (comp_iter = 0, real_iter = 0; real_iter < val_r.size();
+           comp_iter += 1, real_iter += 2) {
+        ret_c[comp_iter]
+            = std::complex<double>{val_r[real_iter], val_r[real_iter + 1]};
+      }
+      return ret_c;
+    }
   }
 
   /**
@@ -178,7 +181,6 @@ class random_var_context : public var_context {
    */
   void names_i(std::vector<std::string>& names) const { names.clear(); }
 
-#ifdef USE_STANC3
   /**
    * Check variable dimensions against variable declaration.
    * Only used for data read in from file.
@@ -186,7 +188,7 @@ class random_var_context : public var_context {
    * @param stage stan program processing stage
    * @param name variable name
    * @param base_type declared stan variable type
-   * @param dims variable dimensions
+   * @param dims_declared variable dimensions
    * @throw std::runtime_error if mismatch between declared
    *        dimensions and dimensions found in context.
    */
@@ -195,7 +197,6 @@ class random_var_context : public var_context {
                      const std::vector<size_t>& dims_declared) const {
     stan::io::validate_dims(*this, stage, name, base_type, dims_declared);
   }
-#endif
 
   /**
    * Return the random initialization on the unconstrained scale.
@@ -214,7 +215,7 @@ class random_var_context : public var_context {
   /**
    * Dimensions of parameters in the model
    */
-  std::vector<std::vector<size_t> > dims_;
+  std::vector<std::vector<size_t>> dims_;
   /**
    * Random parameter values of the model in the
    * unconstrained space
@@ -224,7 +225,7 @@ class random_var_context : public var_context {
    * Random parameter values of the model in the
    * constrained space
    */
-  std::vector<std::vector<double> > vals_r_;
+  std::vector<std::vector<double>> vals_r_;
 
   /**
    * Computes the size of a variable based on the dim provided.
@@ -248,10 +249,10 @@ class random_var_context : public var_context {
    * @return constrained values reshaped to be returned in the vals_r
    *   function
    */
-  std::vector<std::vector<double> > constrained_to_vals_r(
+  std::vector<std::vector<double>> constrained_to_vals_r(
       const std::vector<double>& constrained,
-      const std::vector<std::vector<size_t> >& dims) {
-    std::vector<std::vector<double> > vals_r(dims.size());
+      const std::vector<std::vector<size_t>>& dims) {
+    std::vector<std::vector<double>> vals_r(dims.size());
 
     std::vector<double>::const_iterator start = constrained.begin();
     for (size_t i = 0; i < dims.size(); ++i) {

@@ -11,7 +11,7 @@
 #include <stan/math/prim/fun/size.hpp>
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
@@ -27,7 +27,9 @@ namespace math {
  * @param y scalar variate
  * @return The standard normal cdf evaluated at the specified argument.
  */
-template <typename T_y>
+template <
+    typename T_y,
+    require_all_not_nonscalar_prim_or_rev_kernel_expression_t<T_y>* = nullptr>
 inline return_type_t<T_y> std_normal_cdf(const T_y& y) {
   using T_partials_return = partials_return_t<T_y>;
   using std::exp;
@@ -41,7 +43,7 @@ inline return_type_t<T_y> std_normal_cdf(const T_y& y) {
   }
 
   T_partials_return cdf(1.0);
-  operands_and_partials<T_y_ref> ops_partials(y_ref);
+  auto ops_partials = make_partials_propagator(y_ref);
 
   scalar_seq_view<T_y_ref> y_vec(y_ref);
   size_t N = stan::math::size(y);
@@ -68,14 +70,14 @@ inline return_type_t<T_y> std_normal_cdf(const T_y& y) {
                 ? 0.0
                 : INV_SQRT_TWO_PI * exp(-scaled_y * scaled_y) / cdf_n;
       if (!is_constant_all<T_y>::value) {
-        ops_partials.edge1_.partials_[n] += rep_deriv;
+        partials<0>(ops_partials)[n] += rep_deriv;
       }
     }
   }
 
   if (!is_constant_all<T_y>::value) {
     for (size_t n = 0; n < N; ++n) {
-      ops_partials.edge1_.partials_[n] *= cdf;
+      partials<0>(ops_partials)[n] *= cdf;
     }
   }
 

@@ -8,7 +8,7 @@
 #include <stan/math/prim/fun/elt_divide.hpp>
 #include <stan/math/prim/fun/elt_multiply.hpp>
 #include <stan/math/opencl/kernel_generator.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 
 namespace stan {
 namespace math {
@@ -70,7 +70,7 @@ return_type_t<T_y_cl, T_scale_cl, T_shape_cl> pareto_lpdf(
       = check_cl(function, "Shape parameter", alpha_val, "positive finite");
   auto alpha_positive_finite = 0 < alpha_val && isfinite(alpha_val);
 
-  auto y_less_than_y_min = colwise_max(constant(0, N, 1) + (y_val < y_min_val));
+  auto y_less_than_y_min = colwise_max(cast<char>(y_val < y_min_val));
   auto log_y = log(y_val);
   auto inv_y = elt_divide(1.0, y_val);
   auto log_y_min = log(y_min_val);
@@ -87,7 +87,7 @@ return_type_t<T_y_cl, T_scale_cl, T_shape_cl> pareto_lpdf(
   auto y_min_deriv = elt_divide(alpha_val, y_min_val);
   auto alpha_deriv = elt_divide(1.0, alpha_val) + log_y_min - log_y;
 
-  matrix_cl<int> y_less_than_y_min_cl;
+  matrix_cl<char> y_less_than_y_min_cl;
   matrix_cl<double> logp_cl;
   matrix_cl<double> y_min_deriv_cl;
   matrix_cl<double> y_deriv_cl;
@@ -108,18 +108,16 @@ return_type_t<T_y_cl, T_scale_cl, T_shape_cl> pareto_lpdf(
 
   T_partials_return logp = sum(from_matrix_cl(logp_cl));
 
-  operands_and_partials<decltype(y_col), decltype(y_min_col),
-                        decltype(alpha_col)>
-      ops_partials(y_col, y_min_col, alpha_col);
+  auto ops_partials = make_partials_propagator(y_col, y_min_col, alpha_col);
 
   if (!is_constant<T_y_cl>::value) {
-    ops_partials.edge1_.partials_ = std::move(y_deriv_cl);
+    partials<0>(ops_partials) = std::move(y_deriv_cl);
   }
   if (!is_constant<T_scale_cl>::value) {
-    ops_partials.edge2_.partials_ = std::move(y_min_deriv_cl);
+    partials<1>(ops_partials) = std::move(y_min_deriv_cl);
   }
   if (!is_constant<T_shape_cl>::value) {
-    ops_partials.edge3_.partials_ = std::move(alpha_deriv_cl);
+    partials<2>(ops_partials) = std::move(alpha_deriv_cl);
   }
   return ops_partials.build(logp);
 }

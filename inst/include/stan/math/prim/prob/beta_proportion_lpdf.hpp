@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/digamma.hpp>
 #include <stan/math/prim/fun/lgamma.hpp>
@@ -16,7 +17,7 @@
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
@@ -51,8 +52,6 @@ return_type_t<T_y, T_loc, T_prec> beta_proportion_lpdf(const T_y& y,
                                                        const T_loc& mu,
                                                        const T_prec& kappa) {
   using T_partials_return = partials_return_t<T_y, T_loc, T_prec>;
-  using T_partials_return_kappa = return_type_t<T_prec>;
-  using T_partials_array = Eigen::Array<T_partials_return, Eigen::Dynamic, 1>;
   using std::log;
   using T_y_ref = ref_type_if_t<!is_constant<T_y>::value, T_y>;
   using T_mu_ref = ref_type_if_t<!is_constant<T_loc>::value, T_loc>;
@@ -68,23 +67,14 @@ return_type_t<T_y, T_loc, T_prec> beta_proportion_lpdf(const T_y& y,
   T_mu_ref mu_ref = mu;
   T_kappa_ref kappa_ref = kappa;
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& mu_col = as_column_vector_or_scalar(mu_ref);
-  const auto& kappa_col = as_column_vector_or_scalar(kappa_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& mu_arr = as_array_or_scalar(mu_col);
-  const auto& kappa_arr
-      = promote_scalar<T_partials_return_kappa>(as_array_or_scalar(kappa_col));
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(mu_arr))> mu_val = value_of(mu_arr);
-  ref_type_t<decltype(value_of(kappa_arr))> kappa_val = value_of(kappa_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) mu_val = to_ref(as_value_column_array_or_scalar(mu_ref));
+  decltype(auto) kappa_val = to_ref(as_value_column_array_or_scalar(kappa_ref));
 
   check_positive(function, "Location parameter", mu_val);
   check_less(function, "Location parameter", mu_val, 1.0);
   check_positive_finite(function, "Precision parameter", kappa_val);
-  check_bounded(function, "Random variable", y_val, 0, 1);
+  check_bounded(function, "Random variable", value_of(y_val), 0, 1);
 
   if (!include_summand<propto, T_y, T_loc, T_prec>::value) {
     return 0;
@@ -107,10 +97,9 @@ return_type_t<T_y, T_loc, T_prec> beta_proportion_lpdf(const T_y& y,
   }
   logp += sum((mukappa - 1) * log_y + (kappa_val - mukappa - 1) * log1m_y);
 
-  operands_and_partials<T_y_ref, T_mu_ref, T_kappa_ref> ops_partials(
-      y_ref, mu_ref, kappa_ref);
+  auto ops_partials = make_partials_propagator(y_ref, mu_ref, kappa_ref);
   if (!is_constant_all<T_y>::value) {
-    ops_partials.edge1_.partials_
+    edge<0>(ops_partials).partials_
         = (mukappa - 1) / y_val + (kappa_val - mukappa - 1) / (y_val - 1);
   }
   if (!is_constant_all<T_loc, T_prec>::value) {
@@ -121,12 +110,12 @@ return_type_t<T_y, T_loc, T_prec> beta_proportion_lpdf(const T_y& y,
         !is_constant_all<T_loc>::value && !is_constant_all<T_prec>::value)>(
         digamma(kappa_val - mukappa));
     if (!is_constant_all<T_loc>::value) {
-      ops_partials.edge2_.partials_
+      edge<1>(ops_partials).partials_
           = kappa_val
             * (digamma_kappa_mukappa - digamma_mukappa + log_y - log1m_y);
     }
     if (!is_constant_all<T_prec>::value) {
-      ops_partials.edge3_.partials_
+      edge<2>(ops_partials).partials_
           = digamma(kappa_val) + mu_val * (log_y - digamma_mukappa)
             + (1 - mu_val) * (log1m_y - digamma_kappa_mukappa);
     }

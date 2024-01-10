@@ -10,7 +10,7 @@
 #include <stan/math/prim/fun/digamma.hpp>
 #include <stan/math/prim/fun/lgamma.hpp>
 #include <stan/math/prim/fun/max_size.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 
 namespace stan {
 namespace math {
@@ -62,9 +62,7 @@ return_type_t<T_y_cl, T_shape_cl, T_scale_cl> inv_gamma_lpdf(
   const auto& alpha_val = value_of(alpha_col);
   const auto& beta_val = value_of(beta_col);
 
-  operands_and_partials<decltype(y_col), decltype(alpha_col),
-                        decltype(beta_col)>
-      ops_partials(y_col, alpha_col, beta_col);
+  auto ops_partials = make_partials_propagator(y_col, alpha_col, beta_col);
 
   auto check_y_not_nan
       = check_cl(function, "Random variable", y_val, "not NaN");
@@ -76,7 +74,7 @@ return_type_t<T_y_cl, T_shape_cl, T_scale_cl> inv_gamma_lpdf(
       = check_cl(function, "Scale parameter", beta_val, "positive finite");
   auto beta_pos_finite = beta_val > 0 && isfinite(beta_val);
 
-  auto any_y_nonpositive = colwise_max(constant(0, N, 1) + (y_val <= 0));
+  auto any_y_nonpositive = colwise_max(cast<char>(y_val <= 0));
   auto log_y = log(y_val);
   auto log_beta = log(beta_val);
   auto inv_y = elt_divide(1.0, y_val);
@@ -98,33 +96,35 @@ return_type_t<T_y_cl, T_shape_cl, T_scale_cl> inv_gamma_lpdf(
   auto alpha_deriv = log_beta - digamma(alpha_val) - log_y;
   auto beta_deriv = elt_divide(alpha_val, beta_val) - inv_y;
 
-  matrix_cl<int> any_y_nonpositive_cl;
+  matrix_cl<char> any_y_nonpositive_cl;
   matrix_cl<double> logp_cl;
   matrix_cl<double> y_deriv_cl;
   matrix_cl<double> alpha_deriv_cl;
   matrix_cl<double> beta_deriv_cl;
 
   results(check_alpha_pos_finite, check_beta_pos_finite, check_y_not_nan,
-          logp_cl, y_deriv_cl, alpha_deriv_cl, beta_deriv_cl)
-      = expressions(alpha_pos_finite, beta_pos_finite, y_not_nan, logp_expr,
+          any_y_nonpositive_cl, logp_cl, y_deriv_cl, alpha_deriv_cl,
+          beta_deriv_cl)
+      = expressions(alpha_pos_finite, beta_pos_finite, y_not_nan,
+                    any_y_nonpositive, logp_expr,
                     calc_if<!is_constant<T_y_cl>::value>(y_deriv),
                     calc_if<!is_constant<T_shape_cl>::value>(alpha_deriv),
                     calc_if<!is_constant<T_scale_cl>::value>(beta_deriv));
 
-  if (from_matrix_cl(any_y_nonpositive).any()) {
+  if (from_matrix_cl(any_y_nonpositive_cl).any()) {
     return LOG_ZERO;
   }
 
   T_partials_return logp = sum(from_matrix_cl(logp_cl));
 
   if (!is_constant<T_y_cl>::value) {
-    ops_partials.edge1_.partials_ = std::move(y_deriv_cl);
+    partials<0>(ops_partials) = std::move(y_deriv_cl);
   }
   if (!is_constant<T_shape_cl>::value) {
-    ops_partials.edge2_.partials_ = std::move(alpha_deriv_cl);
+    partials<1>(ops_partials) = std::move(alpha_deriv_cl);
   }
   if (!is_constant<T_scale_cl>::value) {
-    ops_partials.edge3_.partials_ = std::move(beta_deriv_cl);
+    partials<2>(ops_partials) = std::move(beta_deriv_cl);
   }
 
   return ops_partials.build(logp);

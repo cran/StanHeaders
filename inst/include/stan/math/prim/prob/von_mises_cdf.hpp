@@ -69,7 +69,6 @@ return_type_t<T_x, T_k> von_mises_cdf_normalapprox(const T_x& x, const T_k& k) {
  */
 template <typename T_x, typename T_k>
 return_type_t<T_x, T_k> von_mises_cdf_centered(const T_x& x, const T_k& k) {
-  double ck = 50;
   using return_t = return_type_t<T_x, T_k>;
   return_t f;
   if (k < 49) {
@@ -133,9 +132,9 @@ inline return_type_t<T_x, T_mu, T_k> von_mises_cdf(const T_x& x, const T_mu& mu,
   T_mu_ref mu_ref = mu;
   T_k_ref k_ref = k;
 
-  check_bounded(function, "Random variable", x_ref, -pi, pi);
-  check_finite(function, "Location parameter", mu_ref);
-  check_positive(function, "Scale parameter", k_ref);
+  check_bounded(function, "Random variable", value_of(x_ref), -pi, pi);
+  check_finite(function, "Location parameter", value_of(mu_ref));
+  check_positive(function, "Scale parameter", value_of(k_ref));
 
   if (size_zero(x, mu, k)) {
     return 1.0;

@@ -3,7 +3,7 @@
  *                Radu Serban @ LLNL
  * ----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2020, Lawrence Livermore National Security
+ * Copyright (c) 2002-2022, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -167,13 +167,21 @@ int CVodeSetLinearSolver(void *cvode_mem, SUNLinearSolver LS,
 
   /* Set flags based on LS type */
   iterative   = (LSType != SUNLINEARSOLVER_DIRECT);
-  matrixbased = (LSType != SUNLINEARSOLVER_ITERATIVE);
+  matrixbased = ((LSType != SUNLINEARSOLVER_ITERATIVE) &&
+                 (LSType != SUNLINEARSOLVER_MATRIX_EMBEDDED));
 
   /* Test if vector is compatible with LS interface */
   if ( (cv_mem->cv_tempv->ops->nvconst == NULL) ||
        (cv_mem->cv_tempv->ops->nvwrmsnorm == NULL) ) {
     cvProcessError(cv_mem, CVLS_ILL_INPUT, "CVSLS",
                    "CVodeSetLinearSolver", MSG_LS_BAD_NVECTOR);
+    return(CVLS_ILL_INPUT);
+  }
+
+  /* Ensure that A is NULL when LS is matrix-embedded */
+  if ((LSType == SUNLINEARSOLVER_MATRIX_EMBEDDED) && (A != NULL)) {
+    cvProcessError(cv_mem, CVLS_ILL_INPUT, "CVLS", "CVodeSetLinearSolver",
+                    "Incompatible inputs: matrix-embedded LS requires NULL matrix");
     return(CVLS_ILL_INPUT);
   }
 
@@ -186,13 +194,14 @@ int CVodeSetLinearSolver(void *cvode_mem, SUNLinearSolver LS,
       return(CVLS_ILL_INPUT);
     }
 
-    if (!matrixbased && LS->ops->setatimes == NULL) {
+    if (!matrixbased && (LSType != SUNLINEARSOLVER_MATRIX_EMBEDDED) &&
+        (LS->ops->setatimes == NULL)) {
       cvProcessError(cv_mem, CVLS_ILL_INPUT, "CVSLS", "CVodeSetLinearSolver",
                      "Incompatible inputs: iterative LS must support ATimes routine");
       return(CVLS_ILL_INPUT);
     }
 
-    if (matrixbased && A == NULL) {
+    if (matrixbased && (A == NULL)) {
       cvProcessError(cv_mem, CVLS_ILL_INPUT, "CVSLS", "CVodeSetLinearSolver",
                      "Incompatible inputs: matrix-iterative LS requires non-NULL matrix");
       return(CVLS_ILL_INPUT);
@@ -320,7 +329,7 @@ int CVodeSetLinearSolver(void *cvode_mem, SUNLinearSolver LS,
   if (iterative)
     cvls_mem->nrmfac = SUNRsqrt( N_VGetLength(cvls_mem->ytemp) );
 
-  /* Check if soltuion scaling should be enabled */
+  /* Check if solution scaling should be enabled */
   if (matrixbased && cv_mem->cv_lmm == CV_BDF)
     cvls_mem->scalesol = SUNTRUE;
   else
@@ -456,13 +465,6 @@ int CVodeSetJacEvalFrequency(void *cvode_mem, long int msbj)
   return(CVLS_SUCCESS);
 }
 
-/* Deprecated */
-int CVodeSetMaxStepsBetweenJac(void *cvode_mem, long int msbj)
-{
-  return(CVodeSetJacEvalFrequency(cvode_mem, msbj));
-}
-
-
 /* CVodeSetLinearSolutionScaling enables or disables scaling the
    linear solver solution to account for changes in gamma. */
 int CVodeSetLinearSolutionScaling(void *cvode_mem, booleantype onoff)
@@ -494,8 +496,8 @@ int CVodeSetPreconditioner(void *cvode_mem, CVLsPrecSetupFn psetup,
 {
   CVodeMem cv_mem;
   CVLsMem  cvls_mem;
-  PSetupFn cvls_psetup;
-  PSolveFn cvls_psolve;
+  SUNPSetupFn cvls_psetup;
+  SUNPSolveFn cvls_psolve;
   int      retval;
 
   /* access CVLsMem structure */
@@ -819,6 +821,33 @@ int CVodeGetNumJtimesEvals(void *cvode_mem, long int *njvevals)
                            &cv_mem, &cvls_mem);
   if (retval != CVLS_SUCCESS)  return(retval);
   *njvevals = cvls_mem->njtimes;
+  return(CVLS_SUCCESS);
+}
+
+
+/* CVodeGetLinSolveStats returns statistics related to the linear solve. */
+int CVodeGetLinSolveStats(void* cvode_mem, long int* njevals, long int* nfevalsLS,
+                          long int* nliters, long int* nlcfails, long int* npevals,
+                          long int* npsolves, long int* njtsetups, long int* njtimes)
+{
+  CVodeMem cv_mem;
+  CVLsMem  cvls_mem;
+  int      retval;
+
+  /* access CVLsMem structure; set output value and return */
+  retval = cvLs_AccessLMem(cvode_mem, "CVodeGetLinSolveStats",
+                           &cv_mem, &cvls_mem);
+  if (retval != CVLS_SUCCESS)  return(retval);
+
+  *njevals   = cvls_mem->nje;
+  *nfevalsLS = cvls_mem->nfeDQ;
+  *nliters   = cvls_mem->nli;
+  *nlcfails  = cvls_mem->ncfl;
+  *npevals   = cvls_mem->npe;
+  *npsolves  = cvls_mem->nps;
+  *njtsetups = cvls_mem->njtsetup;
+  *njtimes   = cvls_mem->njtimes;
+
   return(CVLS_SUCCESS);
 }
 
@@ -1494,6 +1523,12 @@ int cvLsInitialize(CVodeMem cv_mem)
   if ( (cvls_mem->A == NULL) && (cvls_mem->pset == NULL) )
     cv_mem->cv_lsetup = NULL;
 
+  /* When using a matrix-embedded linear solver, disable lsetup call and solution scaling */
+  if (SUNLinSolGetType(cvls_mem->LS) == SUNLINEARSOLVER_MATRIX_EMBEDDED) {
+    cv_mem->cv_lsetup = NULL;
+    cvls_mem->scalesol = SUNFALSE;
+  }
+
   /* Call LS initialize routine, and return result */
   cvls_mem->last_flag = SUNLinSolInitialize(cvls_mem->LS);
   return(cvls_mem->last_flag);
@@ -1529,6 +1564,12 @@ int cvLsSetup(CVodeMem cv_mem, int convfail, N_Vector ypred,
     return(CVLS_LMEM_NULL);
   }
   cvls_mem = (CVLsMem) cv_mem->cv_lmem;
+
+  /* Immediately return when using matrix-embedded linear solver */
+  if (SUNLinSolGetType(cvls_mem->LS) == SUNLINEARSOLVER_MATRIX_EMBEDDED) {
+    cvls_mem->last_flag = CVLS_SUCCESS;
+    return(cvls_mem->last_flag);
+  }
 
   /* Set CVLs N_Vector pointers to current solution and rhs */
   cvls_mem->ycur = ypred;
@@ -1697,6 +1738,10 @@ int cvLsSolve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 
   /* Set initial guess x = 0 to LS */
   N_VConst(ZERO, cvls_mem->x);
+
+  /* Set zero initial guess flag */
+  retval = SUNLinSolSetZeroGuess(cvls_mem->LS, SUNTRUE);
+  if (retval != SUNLS_SUCCESS) return(-1);
 
   /* If a user-provided jtsetup routine is supplied, call that here */
   if (cvls_mem->jtsetup) {

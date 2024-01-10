@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/log.hpp>
 #include <stan/math/prim/fun/max_size.hpp>
@@ -14,7 +15,7 @@
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
 #include <stan/math/prim/prob/normal_lpdf.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
@@ -71,26 +72,15 @@ return_type_t<T_y, T_s, T_loc, T_scale> normal_sufficient_lpdf(
   T_mu_ref mu_ref = mu;
   T_sigma_ref sigma_ref = sigma;
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& s_squared_col = as_column_vector_or_scalar(s_squared_ref);
-  const auto& n_obs_col = as_column_vector_or_scalar(n_obs_ref);
-  const auto& mu_col = as_column_vector_or_scalar(mu_ref);
-  const auto& sigma_col = as_column_vector_or_scalar(sigma_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& s_squared_arr = as_array_or_scalar(s_squared_col);
-  const auto& n_obs_arr = as_array_or_scalar(n_obs_col);
-  const auto& mu_arr = as_array_or_scalar(mu_col);
-  const auto& sigma_arr = as_array_or_scalar(sigma_col);
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(s_squared_arr))> s_squared_val
-      = value_of(s_squared_arr);
-  const auto& n_obs_val_int = value_of(n_obs_arr);
-  ref_type_t<decltype(promote_scalar<double>(n_obs_arr))> n_obs_val
-      = promote_scalar<double>(n_obs_arr);
-  ref_type_t<decltype(value_of(mu_arr))> mu_val = value_of(mu_arr);
-  ref_type_t<decltype(value_of(sigma_arr))> sigma_val = value_of(sigma_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) s_squared_val
+      = to_ref(as_value_column_array_or_scalar(s_squared_ref));
+  decltype(auto) n_obs_val_int
+      = to_ref(as_value_column_array_or_scalar(n_obs_ref));
+  decltype(auto) n_obs_val = to_ref(
+      promote_scalar<double>(as_value_column_array_or_scalar(n_obs_ref)));
+  decltype(auto) mu_val = to_ref(as_value_column_array_or_scalar(mu_ref));
+  decltype(auto) sigma_val = to_ref(as_value_column_array_or_scalar(sigma_ref));
 
   check_finite(function, "Location parameter sufficient statistic", y_val);
   check_finite(function, "Scale parameter sufficient statistic", s_squared_val);
@@ -123,18 +113,18 @@ return_type_t<T_y, T_s, T_loc, T_scale> normal_sufficient_lpdf(
     logp -= sum(n_obs_val * log(sigma_val)) * N / max_size(n_obs, sigma);
   }
 
-  operands_and_partials<T_y_ref, T_s_ref, T_mu_ref, T_sigma_ref> ops_partials(
-      y_ref, s_squared_ref, mu_ref, sigma_ref);
+  auto ops_partials
+      = make_partials_propagator(y_ref, s_squared_ref, mu_ref, sigma_ref);
   if (!is_constant_all<T_y, T_loc>::value) {
-    const auto& common_derivative = to_ref_if<(
-        !is_constant_all<T_loc>::value && !is_constant_all<T_y>::value)>(
+    auto common_derivative = to_ref_if<(!is_constant_all<T_loc>::value
+                                        && !is_constant_all<T_y>::value)>(
         N / max_size(y_bar, mu, n_obs, sigma) * n_obs_val / sigma_squared
         * diff);
     if (!is_constant_all<T_loc>::value) {
-      ops_partials.edge3_.partials_ = -common_derivative;
+      partials<2>(ops_partials) = -common_derivative;
     }
     if (!is_constant_all<T_y>::value) {
-      ops_partials.edge1_.partials_ = std::move(common_derivative);
+      partials<0>(ops_partials) = std::move(common_derivative);
     }
   }
   if (!is_constant_all<T_s>::value) {
@@ -142,21 +132,21 @@ return_type_t<T_y, T_s, T_loc, T_scale> normal_sufficient_lpdf(
     using T_sigma_value_vector
         = Eigen::Array<T_sigma_value_scalar, Eigen::Dynamic, 1>;
     if (is_vector<T_scale>::value) {
-      ops_partials.edge2_.partials_
+      edge<1>(ops_partials).partials_
           = -0.5 / forward_as<T_sigma_value_vector>(sigma_squared);
     } else {
       if (is_vector<T_s>::value) {
-        ops_partials.edge2_.partials_ = T_sigma_value_vector::Constant(
+        partials<1>(ops_partials) = T_sigma_value_vector::Constant(
             N, -0.5 / forward_as<T_sigma_value_scalar>(sigma_squared));
       } else {
         forward_as<internal::broadcast_array<T_partials_return>>(
-            ops_partials.edge2_.partials_)
+            partials<1>(ops_partials))
             = -0.5 / sigma_squared * N / math::size(sigma);
       }
     }
   }
   if (!is_constant_all<T_scale>::value) {
-    ops_partials.edge4_.partials_
+    edge<3>(ops_partials).partials_
         = (cons_expr / sigma_squared - n_obs_val) / sigma_val;
   }
   return ops_partials.build(logp);

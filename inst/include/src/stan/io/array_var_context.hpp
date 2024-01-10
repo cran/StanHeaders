@@ -2,6 +2,7 @@
 #define STAN_IO_ARRAY_VAR_CONTEXT_HPP
 
 #include <stan/io/var_context.hpp>
+#include <stan/io/validate_dims.hpp>
 #include <stan/math.hpp>
 #include <stan/math/prim/fun/Eigen.hpp>
 #include <map>
@@ -287,6 +288,45 @@ class array_var_context : public var_context {
   }
 
   /**
+   * Return the double values for the variable with the specified
+   * name or null.
+   *
+   * @param name Name of variable.
+   * @return Values of variable.
+   *
+   */
+  std::vector<std::complex<double>> vals_c(const std::string& name) const {
+    const auto val_r = vars_r_.find(name);
+    if (val_r != vars_r_.end()) {
+      std::vector<std::complex<double>> ret_c(val_r->second.first.size() / 2);
+      int comp_iter;
+      int real_iter;
+      for (comp_iter = 0, real_iter = 0; real_iter < val_r->second.first.size();
+           comp_iter += 1, real_iter += 2) {
+        ret_c[comp_iter] = std::complex<double>{
+            val_r->second.first[real_iter], val_r->second.first[real_iter + 1]};
+      }
+      return ret_c;
+    } else {
+      const auto val_i = vars_i_.find(name);
+      if (val_i != vars_i_.end()) {
+        std::vector<std::complex<double>> ret_c(val_i->second.first.size() / 2);
+        int comp_iter;
+        int real_iter;
+        for (comp_iter = 0, real_iter = 0;
+             real_iter < val_i->second.first.size();
+             comp_iter += 1, real_iter += 2) {
+          ret_c[comp_iter] = std::complex<double>{
+              static_cast<double>(val_i->second.first[real_iter]),
+              static_cast<double>(val_i->second.first[real_iter + 1])};
+        }
+        return ret_c;
+      }
+    }
+    return std::vector<std::complex<double>>{};
+  }
+
+  /**
    * Return the dimensions for the double variable with the specified
    * name.
    *
@@ -336,7 +376,6 @@ class array_var_context : public var_context {
     return empty_vec_ui_;
   }
 
-#ifdef USE_STANC3
   /**
    * Check variable dimensions against variable declaration.
    * Only used for data read in from file.
@@ -344,16 +383,22 @@ class array_var_context : public var_context {
    * @param stage stan program processing stage
    * @param name variable name
    * @param base_type declared stan variable type
-   * @param dims variable dimensions
+   * @param dims_declared variable dimensions
    * @throw std::runtime_error if mismatch between declared
    *        dimensions and dimensions found in context.
    */
   void validate_dims(const std::string& stage, const std::string& name,
                      const std::string& base_type,
                      const std::vector<size_t>& dims_declared) const {
+    size_t num_elts = 1;
+    for (auto& d : dims_declared) {
+      num_elts *= d;
+    }
+    if (num_elts == 0) {
+      return;
+    }
     stan::io::validate_dims(*this, stage, name, base_type, dims_declared);
   }
-#endif
 
   /**
    * Return a list of the names of the floating point variables in

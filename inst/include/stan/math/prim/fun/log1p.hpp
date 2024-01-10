@@ -61,7 +61,7 @@ struct log1p_fun {
    * @return natural log of one plus the argument
    */
   template <typename T>
-  static inline T fun(const T& x) {
+  static inline auto fun(const T& x) {
     return log1p(x);
   }
 };
@@ -77,7 +77,8 @@ struct log1p_fun {
  * @return Elementwise log1p of members of container.
  */
 template <typename T,
-          require_not_nonscalar_prim_or_rev_kernel_expression_t<T>* = nullptr>
+          require_not_nonscalar_prim_or_rev_kernel_expression_t<T>* = nullptr,
+          require_not_var_matrix_t<T>* = nullptr>
 inline auto log1p(const T& x) {
   return apply_scalar_unary<log1p_fun, T>::apply(x);
 }

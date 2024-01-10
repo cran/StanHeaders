@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/inv.hpp>
 #include <stan/math/prim/fun/log.hpp>
@@ -14,7 +15,7 @@
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
@@ -38,17 +39,9 @@ return_type_t<T_y, T_loc, T_scale> lognormal_lpdf(const T_y& y, const T_loc& mu,
   T_mu_ref mu_ref = mu;
   T_sigma_ref sigma_ref = sigma;
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& mu_col = as_column_vector_or_scalar(mu_ref);
-  const auto& sigma_col = as_column_vector_or_scalar(sigma_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& mu_arr = as_array_or_scalar(mu_col);
-  const auto& sigma_arr = as_array_or_scalar(sigma_col);
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(mu_arr))> mu_val = value_of(mu_arr);
-  ref_type_t<decltype(value_of(sigma_arr))> sigma_val = value_of(sigma_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) mu_val = to_ref(as_value_column_array_or_scalar(mu_ref));
+  decltype(auto) sigma_val = to_ref(as_value_column_array_or_scalar(sigma_ref));
 
   check_nonnegative(function, "Random variable", y_val);
   check_finite(function, "Location parameter", mu_val);
@@ -61,8 +54,7 @@ return_type_t<T_y, T_loc, T_scale> lognormal_lpdf(const T_y& y, const T_loc& mu,
     return 0;
   }
 
-  operands_and_partials<T_y_ref, T_mu_ref, T_sigma_ref> ops_partials(
-      y_ref, mu_ref, sigma_ref);
+  auto ops_partials = make_partials_propagator(y_ref, mu_ref, sigma_ref);
 
   if (sum(promote_scalar<int>(y_val == 0))) {
     return ops_partials.build(LOG_ZERO);
@@ -94,13 +86,13 @@ return_type_t<T_y, T_loc, T_scale> lognormal_lpdf(const T_y& y, const T_loc& mu,
                         + !is_constant_all<T_scale>::value
                     >= 2>(logy_m_mu * inv_sigma_sq);
     if (!is_constant_all<T_y>::value) {
-      ops_partials.edge1_.partials_ = -(1 + logy_m_mu_div_sigma) / y_val;
+      partials<0>(ops_partials) = -(1 + logy_m_mu_div_sigma) / y_val;
     }
     if (!is_constant_all<T_loc>::value) {
-      ops_partials.edge2_.partials_ = logy_m_mu_div_sigma;
+      partials<1>(ops_partials) = logy_m_mu_div_sigma;
     }
     if (!is_constant_all<T_scale>::value) {
-      ops_partials.edge3_.partials_
+      edge<2>(ops_partials).partials_
           = (logy_m_mu_div_sigma * logy_m_mu - 1) * inv_sigma;
     }
   }

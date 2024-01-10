@@ -30,7 +30,6 @@ namespace math {
  *    factorized by factor_cov_matrix() or if the sds returned by
  *    factor_cov_matrix() on log scale are unconstrained.
  */
-#ifdef USE_STANC3
 template <typename T, require_eigen_t<T>* = nullptr>
 Eigen::Matrix<value_type_t<T>, Eigen::Dynamic, 1> corr_matrix_free(const T& y) {
   using Eigen::Array;
@@ -52,33 +51,19 @@ Eigen::Matrix<value_type_t<T>, Eigen::Dynamic, 1> corr_matrix_free(const T& y) {
                 CONSTRAINT_TOLERANCE);
   return x;
 }
-#else
-template <typename T>
-Eigen::Matrix<T, Eigen::Dynamic, 1> corr_matrix_free(
-    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& y) {
-  check_square("corr_matrix_free", "y", y);
-  check_nonzero_size("corr_matrix_free", "y", y);
 
-  using Eigen::Array;
-  using Eigen::Dynamic;
-  using Eigen::Matrix;
-  using size_type = typename index_type<Matrix<T, Dynamic, 1> >::type;
-
-  size_type k = y.rows();
-  size_type k_choose_2 = (k * (k - 1)) / 2;
-  Array<T, Dynamic, 1> x(k_choose_2);
-  Array<T, Dynamic, 1> sds(k);
-  bool successful = factor_cov_matrix(y, x, sds);
-  if (!successful) {
-    domain_error("corr_matrix_free", "factor_cov_matrix failed on y", y, "");
-  }
-  for (size_type i = 0; i < k; ++i) {
-    check_bounded("corr_matrix_free", "log(sd)", sds[i], -CONSTRAINT_TOLERANCE,
-                  CONSTRAINT_TOLERANCE);
-  }
-  return x.matrix();
+/**
+ * Overload of `corr_matrix_free()` to untransform each matrix
+ * in a standard vector.
+ * @tparam T A standard vector with with a `value_type` which inherits from
+ *  `Eigen::MatrixBase`.
+ * @param x The standard vector to untransform.
+ */
+template <typename T, require_std_vector_t<T>* = nullptr>
+auto corr_matrix_free(const T& x) {
+  return apply_vector_unary<T>::apply(
+      x, [](auto&& v) { return corr_matrix_free(v); });
 }
-#endif
 
 }  // namespace math
 }  // namespace stan

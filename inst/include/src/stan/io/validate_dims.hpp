@@ -1,5 +1,3 @@
-#ifdef USE_STANC3
-
 #ifndef STAN_IO_VALIDATE_DIMS_HPP
 #define STAN_IO_VALIDATE_DIMS_HPP
 
@@ -17,7 +15,7 @@ namespace io {
  * @param stage stan program processing stage
  * @param name variable name
  * @param base_type declared stan variable type
- * @param dims variable dimensions
+ * @param dims_declared variable dimensions
  * @throw std::runtime_error if mismatch between declared
  *        dimensions and dimensions found in context.
  */
@@ -71,6 +69,4 @@ inline void validate_dims(const stan::io::var_context& context,
 
 }  // namespace io
 }  // namespace stan
-#endif
-
 #endif

@@ -7,14 +7,16 @@
 namespace stan {
 namespace math {
 
-template <typename T>
+template <typename T_ret, typename T,
+          require_eigen_col_vector_t<T_ret>* = nullptr,
+          require_stan_scalar_t<T>* = nullptr>
 inline auto rep_vector(const T& x, int n) {
   check_nonnegative("rep_vector", "n", n);
-#ifdef USE_STANC3
-  return Eigen::Matrix<return_type_t<T>, Eigen::Dynamic, 1>::Constant(n, x);
-#else
-  return Eigen::Matrix<return_type_t<T>, Eigen::Dynamic, 1>::Constant(n, x).eval();
-#endif
+  return T_ret::Constant(n, x);
+}
+template <typename T, require_stan_scalar_t<T>* = nullptr>
+inline auto rep_vector(const T& x, int n) {
+  return rep_vector<Eigen::Matrix<return_type_t<T>, Eigen::Dynamic, 1>>(x, n);
 }
 
 }  // namespace math

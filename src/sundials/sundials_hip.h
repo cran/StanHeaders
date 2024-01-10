@@ -3,7 +3,7 @@
  * Programmer(s): Cody J. Balos, and Daniel McGreer @ LLNL
  * -----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2020, Lawrence Livermore National Security
+ * Copyright (c) 2002-2022, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -31,16 +31,23 @@ extern "C" {
 #endif
 
 /* ---------------------------------------------------------------------------
- * Constants
- * ---------------------------------------------------------------------------*/
-
-#define MAX_HIP_BLOCKSIZE 1024
-
-/* ---------------------------------------------------------------------------
  * Utility macros
  * ---------------------------------------------------------------------------*/
 
 #define SUNDIALS_HIP_VERIFY(hiperr) SUNDIALS_HIP_Assert(hiperr, __FILE__, __LINE__)
+
+#define SUNDIALS_KERNEL_NAME(...) __VA_ARGS__
+#ifndef SUNDIALS_DEBUG_HIP_LASTERROR
+#define SUNDIALS_LAUNCH_KERNEL(kernel, gridDim, blockDim, shMem, stream, ...) \
+{ kernel<<<gridDim, blockDim, shMem, stream>>>(__VA_ARGS__); }
+#else
+#define SUNDIALS_LAUNCH_KERNEL(kernel, gridDim, blockDim, shMem, stream, ...) \
+{ \
+  kernel<<<gridDim, blockDim, shMem, stream>>>(__VA_ARGS__); \
+  hipDeviceSynchronize(); \
+  SUNDIALS_HIP_VERIFY(hipGetLastError()); \
+}
+#endif
 
 /* ---------------------------------------------------------------------------
  * Utility functions

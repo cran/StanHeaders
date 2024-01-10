@@ -7,7 +7,7 @@
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/log.hpp>
 #include <stan/math/opencl/kernel_generator.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 
 namespace stan {
 namespace math {
@@ -34,7 +34,6 @@ return_type_t<T_rate_cl> poisson_lpmf(const T_n_cl& n,
   using T_partials_return = partials_return_t<T_rate_cl>;
   using std::isinf;
   constexpr bool is_n_vector = !is_stan_scalar<T_n_cl>::value;
-  constexpr bool is_lambda_vector = !is_stan_scalar<T_rate_cl>::value;
 
   check_consistent_sizes(function, "Random variable", n, "Rate parameter",
                          lambda);
@@ -50,7 +49,7 @@ return_type_t<T_rate_cl> poisson_lpmf(const T_n_cl& n,
   const auto& lambda_val = value_of(lambda_col);
 
   T_partials_return logp(0.0);
-  operands_and_partials<decltype(lambda_col)> ops_partials(lambda_col);
+  auto ops_partials = make_partials_propagator(lambda_col);
 
   auto check_n_nonnegative
       = check_cl(function, "Random variable", n, "nonnegative");
@@ -60,7 +59,7 @@ return_type_t<T_rate_cl> poisson_lpmf(const T_n_cl& n,
   auto lambda_nonnegative = 0.0 <= lambda_val;
 
   auto return_log_zero = colwise_max(
-      constant(0, N, 1) + (isinf(lambda_val) || (lambda_val == 0 && n != 0)));
+      cast<char>(isinf(lambda_val) || (lambda_val == 0 && n != 0)));
 
   auto logp1 = multiply_log(n, lambda_val);
   auto logp2 = static_select<include_summand<propto, T_rate_cl>::value>(
@@ -70,7 +69,7 @@ return_type_t<T_rate_cl> poisson_lpmf(const T_n_cl& n,
 
   auto deriv = elt_divide(n, lambda_val) - 1.0;
 
-  matrix_cl<int> return_log_zero_cl;
+  matrix_cl<char> return_log_zero_cl;
   matrix_cl<double> logp_cl;
   matrix_cl<double> deriv_cl;
 
@@ -87,7 +86,7 @@ return_type_t<T_rate_cl> poisson_lpmf(const T_n_cl& n,
   logp = sum(from_matrix_cl(logp_cl));
 
   if (!is_constant_all<T_rate_cl>::value) {
-    ops_partials.edge1_.partials_ = deriv_cl;
+    partials<0>(ops_partials) = deriv_cl;
   }
 
   return ops_partials.build(logp);

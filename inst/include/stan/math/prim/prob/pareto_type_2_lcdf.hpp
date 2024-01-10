@@ -5,19 +5,22 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/log.hpp>
 #include <stan/math/prim/fun/log1m.hpp>
 #include <stan/math/prim/fun/max_size.hpp>
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
 namespace math {
 
-template <typename T_y, typename T_loc, typename T_scale, typename T_shape>
+template <typename T_y, typename T_loc, typename T_scale, typename T_shape,
+          require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
+              T_y, T_loc, T_scale, T_shape>* = nullptr>
 return_type_t<T_y, T_loc, T_scale, T_shape> pareto_type_2_lcdf(
     const T_y& y, const T_loc& mu, const T_scale& lambda,
     const T_shape& alpha) {
@@ -41,20 +44,11 @@ return_type_t<T_y, T_loc, T_scale, T_shape> pareto_type_2_lcdf(
   T_lambda_ref lambda_ref = lambda;
   T_alpha_ref alpha_ref = alpha;
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& mu_col = as_column_vector_or_scalar(mu_ref);
-  const auto& lambda_col = as_column_vector_or_scalar(lambda_ref);
-  const auto& alpha_col = as_column_vector_or_scalar(alpha_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& mu_arr = as_array_or_scalar(mu_col);
-  const auto& lambda_arr = as_array_or_scalar(lambda_col);
-  const auto& alpha_arr = as_array_or_scalar(alpha_col);
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(mu_arr))> mu_val = value_of(mu_arr);
-  ref_type_t<decltype(value_of(lambda_arr))> lambda_val = value_of(lambda_arr);
-  ref_type_t<decltype(value_of(alpha_arr))> alpha_val = value_of(alpha_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) mu_val = to_ref(as_value_column_array_or_scalar(mu_ref));
+  decltype(auto) lambda_val
+      = to_ref(as_value_column_array_or_scalar(lambda_ref));
+  decltype(auto) alpha_val = to_ref(as_value_column_array_or_scalar(alpha_ref));
 
   check_nonnegative(function, "Random variable", y_val);
   check_positive_finite(function, "Scale parameter", lambda_val);
@@ -68,8 +62,8 @@ return_type_t<T_y, T_loc, T_scale, T_shape> pareto_type_2_lcdf(
           pow(temp, alpha_val));
   T_partials_return P = sum(log1m(1 / p1_pow_alpha));
 
-  operands_and_partials<T_y_ref, T_mu_ref, T_lambda_ref, T_alpha_ref>
-      ops_partials(y_ref, mu_ref, lambda_ref, alpha_ref);
+  auto ops_partials
+      = make_partials_propagator(y_ref, mu_ref, lambda_ref, alpha_ref);
 
   if (!is_constant_all<T_y, T_loc, T_scale, T_shape>::value) {
     const auto& inv_p1_pow_alpha_minus_one
@@ -77,25 +71,24 @@ return_type_t<T_y, T_loc, T_scale, T_shape> pareto_type_2_lcdf(
                      && !is_constant_all<T_shape>::value)>(
             inv(p1_pow_alpha - 1));
     if (!is_constant_all<T_y, T_loc, T_scale, T_shape>::value) {
-      const auto& grad_1_2
-          = to_ref_if<(!is_constant_all<T_loc>::value
-                       + !is_constant_all<T_scale>::value
-                       + !is_constant_all<T_y>::value)
-                      >= 2>(alpha_val * inv_p1_pow_alpha_minus_one
-                            / (lambda_val - mu_val + y_val));
+      auto grad_1_2 = to_ref_if<(!is_constant_all<T_loc>::value
+                                 + !is_constant_all<T_scale>::value
+                                 + !is_constant_all<T_y>::value)
+                                >= 2>(alpha_val * inv_p1_pow_alpha_minus_one
+                                      / (lambda_val - mu_val + y_val));
       if (!is_constant_all<T_loc>::value) {
-        ops_partials.edge2_.partials_ = -grad_1_2;
+        partials<1>(ops_partials) = -grad_1_2;
       }
       if (!is_constant_all<T_scale>::value) {
-        ops_partials.edge3_.partials_
+        edge<2>(ops_partials).partials_
             = (mu_val - y_val) * grad_1_2 / lambda_val;
       }
       if (!is_constant_all<T_y>::value) {
-        ops_partials.edge1_.partials_ = std::move(grad_1_2);
+        partials<0>(ops_partials) = std::move(grad_1_2);
       }
     }
     if (!is_constant_all<T_shape>::value) {
-      ops_partials.edge4_.partials_ = log(temp) * inv_p1_pow_alpha_minus_one;
+      partials<3>(ops_partials) = log(temp) * inv_p1_pow_alpha_minus_one;
     }
   }
 

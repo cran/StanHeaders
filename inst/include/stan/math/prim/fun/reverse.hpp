@@ -31,13 +31,9 @@ inline std::vector<T> reverse(const std::vector<T>& x) {
  * @param x vector or row vector to reverse
  * @return Vector or row vector in reversed order.
  */
-template <typename T, typename = require_eigen_vector_t<T>>
+template <typename T, typename = require_vector_t<T>>
 inline auto reverse(const T& x) {
-#ifdef USE_STANC3
   return x.reverse();
-#else
-  return x.reverse().eval();
-#endif
 }
 
 }  // namespace math

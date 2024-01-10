@@ -14,14 +14,16 @@
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/square.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 #include <limits>
 
 namespace stan {
 namespace math {
 
-template <typename T_y, typename T_loc, typename T_scale>
+template <typename T_y, typename T_loc, typename T_scale,
+          require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
+              T_y, T_loc, T_scale>* = nullptr>
 inline return_type_t<T_y, T_loc, T_scale> normal_lcdf(const T_y& y,
                                                       const T_loc& mu,
                                                       const T_scale& sigma) {
@@ -49,8 +51,7 @@ inline return_type_t<T_y, T_loc, T_scale> normal_lcdf(const T_y& y,
   }
 
   T_partials_return cdf_log(0.0);
-  operands_and_partials<T_y_ref, T_mu_ref, T_sigma_ref> ops_partials(
-      y_ref, mu_ref, sigma_ref);
+  auto ops_partials = make_partials_propagator(y_ref, mu_ref, sigma_ref);
 
   scalar_seq_view<T_y_ref> y_vec(y_ref);
   scalar_seq_view<T_mu_ref> mu_vec(mu_ref);
@@ -214,13 +215,13 @@ inline return_type_t<T_y, T_loc, T_scale> normal_lcdf(const T_y& y,
       }
 
       if (!is_constant_all<T_y>::value) {
-        ops_partials.edge1_.partials_[n] += dncdf_log / sigma_sqrt2;
+        partials<0>(ops_partials)[n] += dncdf_log / sigma_sqrt2;
       }
       if (!is_constant_all<T_loc>::value) {
-        ops_partials.edge2_.partials_[n] -= dncdf_log / sigma_sqrt2;
+        partials<1>(ops_partials)[n] -= dncdf_log / sigma_sqrt2;
       }
       if (!is_constant_all<T_scale>::value) {
-        ops_partials.edge3_.partials_[n] -= dncdf_log * scaled_diff / sigma_dbl;
+        partials<2>(ops_partials)[n] -= dncdf_log * scaled_diff / sigma_dbl;
       }
     }
   }

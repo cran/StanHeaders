@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/erf.hpp>
 #include <stan/math/prim/fun/exp.hpp>
@@ -18,13 +19,15 @@
 #include <stan/math/prim/fun/square.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
 namespace math {
 
-template <typename T_y, typename T_loc, typename T_scale, typename T_inv_scale>
+template <typename T_y, typename T_loc, typename T_scale, typename T_inv_scale,
+          require_all_not_nonscalar_prim_or_rev_kernel_expression_t<
+              T_y, T_loc, T_scale, T_inv_scale>* = nullptr>
 return_type_t<T_y, T_loc, T_scale, T_inv_scale> exp_mod_normal_lcdf(
     const T_y& y, const T_loc& mu, const T_scale& sigma,
     const T_inv_scale& lambda) {
@@ -43,20 +46,11 @@ return_type_t<T_y, T_loc, T_scale, T_inv_scale> exp_mod_normal_lcdf(
   T_sigma_ref sigma_ref = sigma;
   T_lambda_ref lambda_ref = lambda;
 
-  const auto& y_col = as_column_vector_or_scalar(y_ref);
-  const auto& mu_col = as_column_vector_or_scalar(mu_ref);
-  const auto& sigma_col = as_column_vector_or_scalar(sigma_ref);
-  const auto& lambda_col = as_column_vector_or_scalar(lambda_ref);
-
-  const auto& y_arr = as_array_or_scalar(y_col);
-  const auto& mu_arr = as_array_or_scalar(mu_col);
-  const auto& sigma_arr = as_array_or_scalar(sigma_col);
-  const auto& lambda_arr = as_array_or_scalar(lambda_col);
-
-  ref_type_t<decltype(value_of(y_arr))> y_val = value_of(y_arr);
-  ref_type_t<decltype(value_of(mu_arr))> mu_val = value_of(mu_arr);
-  ref_type_t<decltype(value_of(sigma_arr))> sigma_val = value_of(sigma_arr);
-  ref_type_t<decltype(value_of(lambda_arr))> lambda_val = value_of(lambda_arr);
+  decltype(auto) y_val = to_ref(as_value_column_array_or_scalar(y_ref));
+  decltype(auto) mu_val = to_ref(as_value_column_array_or_scalar(mu_ref));
+  decltype(auto) sigma_val = to_ref(as_value_column_array_or_scalar(sigma_ref));
+  decltype(auto) lambda_val
+      = to_ref(as_value_column_array_or_scalar(lambda_ref));
 
   check_not_nan(function, "Random variable", y_val);
   check_finite(function, "Location parameter", mu_val);
@@ -67,8 +61,8 @@ return_type_t<T_y, T_loc, T_scale, T_inv_scale> exp_mod_normal_lcdf(
     return 0;
   }
 
-  operands_and_partials<T_y_ref, T_mu_ref, T_sigma_ref, T_lambda_ref>
-      ops_partials(y_ref, mu_ref, sigma_ref, lambda_ref);
+  auto ops_partials
+      = make_partials_propagator(y_ref, mu_ref, sigma_ref, lambda_ref);
 
   scalar_seq_view<decltype(y_val)> y_vec(y_val);
   for (size_t n = 0, size_y = stan::math::size(y); n < size_y; n++) {
@@ -116,21 +110,21 @@ return_type_t<T_y, T_loc, T_scale, T_inv_scale> exp_mod_normal_lcdf(
                                        && !is_constant_all<T_y>::value)>(
             (deriv_1 - deriv_2 + deriv_3) / cdf_n);
         if (!is_constant_all<T_y>::value) {
-          ops_partials.edge1_.partials_ = deriv;
+          partials<0>(ops_partials) = deriv;
         }
         if (!is_constant_all<T_loc>::value) {
-          ops_partials.edge2_.partials_ = -deriv;
+          partials<1>(ops_partials) = -deriv;
         }
       }
       if (!is_constant_all<T_scale>::value) {
-        ops_partials.edge3_.partials_
+        edge<2>(ops_partials).partials_
             = -((deriv_1 - deriv_2) * v
                 + (deriv_3 - deriv_2) * scaled_diff * SQRT_TWO)
               / cdf_n;
       }
     }
     if (!is_constant_all<T_inv_scale>::value) {
-      ops_partials.edge4_.partials_
+      edge<3>(ops_partials).partials_
           = exp_term
             * (INV_SQRT_TWO_PI * sigma_val * exp_term_2
                - (v * sigma_val - diff) * erf_calc)

@@ -18,11 +18,7 @@ namespace math {
 template <typename T,
           require_all_kernel_expressions_and_none_scalar_t<T>* = nullptr>
 inline var_value<matrix_cl<double>> ceil(const var_value<T>& A) {
-  return make_callback_var(
-      ceil(A.val()), [A](vari_value<matrix_cl<double>>& res) mutable {
-        A.adj() = select(isnan(A.val()),
-                         constant(NOT_A_NUMBER, A.rows(), A.cols()), A.adj());
-      });
+  return var_value<matrix_cl<double>>(ceil(A.val()));
 }
 
 }  // namespace math

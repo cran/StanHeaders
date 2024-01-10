@@ -12,13 +12,15 @@
 #include <stan/math/prim/fun/size.hpp>
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 
 namespace stan {
 namespace math {
 
-template <typename T_y>
+template <
+    typename T_y,
+    require_all_not_nonscalar_prim_or_rev_kernel_expression_t<T_y>* = nullptr>
 inline return_type_t<T_y> std_normal_lccdf(const T_y& y) {
   using T_partials_return = partials_return_t<T_y>;
   using std::exp;
@@ -33,7 +35,7 @@ inline return_type_t<T_y> std_normal_lccdf(const T_y& y) {
   }
 
   T_partials_return lccdf(0.0);
-  operands_and_partials<T_y_ref> ops_partials(y_ref);
+  auto ops_partials = make_partials_propagator(y_ref);
 
   scalar_seq_view<T_y_ref> y_vec(y_ref);
   size_t N = stan::math::size(y);
@@ -60,7 +62,7 @@ inline return_type_t<T_y> std_normal_lccdf(const T_y& y) {
           = y_dbl > 8.25
                 ? INFTY
                 : SQRT_TWO_OVER_SQRT_PI * exp(-scaled_y * scaled_y) / one_m_erf;
-      ops_partials.edge1_.partials_[n] -= rep_deriv;
+      partials<0>(ops_partials)[n] -= rep_deriv;
     }
   }
 

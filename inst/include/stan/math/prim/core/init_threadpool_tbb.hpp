@@ -5,6 +5,14 @@
 
 #include <boost/lexical_cast.hpp>
 
+#ifndef TBB_INTERFACE_NEW
+#include <tbb/tbb_stddef.h>
+
+#if TBB_VERSION_MAJOR >= 2020
+#define TBB_INTERFACE_NEW
+#endif
+#endif
+
 #ifdef TBB_INTERFACE_NEW
 #include <tbb/global_control.h>
 #include <tbb/task_arena.h>
@@ -37,6 +45,7 @@ namespace internal {
  */
 inline int get_num_threads() {
   int num_threads = 1;
+#ifdef STAN_THREADS
   const char* env_stan_num_threads = std::getenv("STAN_NUM_THREADS");
   if (env_stan_num_threads != nullptr) {
     try {
@@ -59,6 +68,7 @@ inline int get_num_threads() {
                        "' but it must be a positive number or -1");
     }
   }
+#endif
   return num_threads;
 }
 
@@ -67,7 +77,7 @@ inline int get_num_threads() {
 #ifdef TBB_INTERFACE_NEW
 /**
  * Initialize the Intel TBB threadpool and global scheduler through
- * the tbb::global_control object. In case an instance of the
+ * the tbb::task_arena object. In case an instance of the
  * tbb::task_scheduler_object has been instantiated prior to calling
  * this function, then any subsequent initialization is ignored by the
  * Intel TBB.
@@ -80,17 +90,34 @@ inline int get_num_threads() {
  * The function returns a reference to the static
  * tbb::global_control instance.
  *
+ * @param n_threads The maximum number of threads available to the tbb. If not
+ *  set will search for the environment variable `STAN_NUM_THREADS`. A value of
+ *  -1 will assume all detectable threads are available for the process.
  * @return reference to the static tbb::global_control
- * @throws std::runtime_error if the value of STAN_NUM_THREADS env. variable
- * is invalid
+ * @throws std::runtime_error if n_threads (defaults to zero) is not provided
+ * and the value of STAN_NUM_THREADS environment variable is invalid.
  */
-inline tbb::global_control& init_threadpool_tbb() {
-  int tbb_max_threads = internal::get_num_threads();
-
-  static tbb::global_control tbb_scheduler(
+inline tbb::task_arena& init_threadpool_tbb(int n_threads = 0) {
+  int tbb_max_threads = 1;
+#ifdef STAN_THREADS
+  if (n_threads == 0) {
+    tbb_max_threads = internal::get_num_threads();
+  } else if (n_threads > 0) {
+    tbb_max_threads = n_threads;
+  } else if (n_threads == -1) {
+    tbb_max_threads = std::thread::hardware_concurrency();
+  } else {
+    invalid_argument("init_threadpool_tbb(int)", "n_threads", n_threads,
+                     "The number of threads is '",
+                     "' but it must be positive or -1");
+  }
+#endif
+  static tbb::global_control tbb_gc(
       tbb::global_control::max_allowed_parallelism, tbb_max_threads);
+  static tbb::task_arena tbb_arena(tbb_max_threads, 1);
+  tbb_arena.initialize();
 
-  return tbb_scheduler;
+  return tbb_arena;
 }
 #else
 /**
@@ -108,18 +135,29 @@ inline tbb::global_control& init_threadpool_tbb() {
  * The function returns a reference to the static
  * tbb::task_scheduler_init instance.
  *
- * @param stack_size sets the stack size of each thread; the default 0
- * let's the TBB choose the stack size
+ * @param n_threads The maximum number of threads available to the tbb. If not
+ *  set will search for the environment variable `STAN_NUM_THREADS`. A value of
+ *  will assume all detectable threads are available for the process.
  * @return reference to the static tbb::task_scheduler_init
- * @throws std::runtime_error if the value of STAN_NUM_THREADS env. variable
- * is invalid
+ * @throws std::runtime_error if n_threads (defaults to zero) is not provided
+ * and the value of STAN_NUM_THREADS environment variable is invalid.
  */
-inline tbb::task_scheduler_init& init_threadpool_tbb(
-    tbb::stack_size_type stack_size = 0) {
-  int tbb_max_threads = internal::get_num_threads();
-
-  static tbb::task_scheduler_init tbb_scheduler(tbb_max_threads, stack_size);
-
+inline tbb::task_scheduler_init& init_threadpool_tbb(int n_threads = 0) {
+  int tbb_max_threads = 1;
+#ifdef STAN_THREADS
+  if (n_threads == 0) {
+    tbb_max_threads = internal::get_num_threads();
+  } else if (n_threads > 0) {
+    tbb_max_threads = n_threads;
+  } else if (n_threads == -1) {
+    tbb_max_threads = std::thread::hardware_concurrency();
+  } else {
+    invalid_argument("init_threadpool_tbb(int)", "n_threads", n_threads,
+                     "The number of threads is '",
+                     "' but it must be positive or -1");
+  }
+#endif
+  static tbb::task_scheduler_init tbb_scheduler(tbb_max_threads, 0);
   return tbb_scheduler;
 }
 #endif

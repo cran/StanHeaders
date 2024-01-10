@@ -12,14 +12,14 @@
 
 namespace stan {
 namespace math {
-// Forward declaration to allow specialisations
+// Forward declaration to allow specializations
 template <typename T, typename Enable = void>
 struct apply_vector_unary {};
 
 /**
  * Base template class for vectorization of unary vector functions
  * defined by applying a functor to a standard library vector, Eigen dense
- * matrix expression template, or container of these. For each specialisation,
+ * matrix expression template, or container of these. For each specialization,
  * the same vector type as the input is returned.
  *
  * Two taxonomies of unary vector functions are implemented:
@@ -43,25 +43,16 @@ struct apply_vector_unary<T, require_eigen_t<T>> {
   template <typename F, typename T2 = T,
             require_t<is_eigen_matrix_base<plain_type_t<T2>>>* = nullptr>
   static inline auto apply(const T& x, const F& f) {
-#ifdef USE_STANC3
     return make_holder([](const auto& a) { return a.matrix().derived(); },
                        f(x));
-#else
-    return f(x).matrix().eval();
-#endif
   }
 
   template <typename F, typename T2 = T,
             require_t<is_eigen_array<plain_type_t<T2>>>* = nullptr>
   static inline auto apply(const T& x, const F& f) {
-#ifdef USE_STANC3
     return make_holder([](const auto& a) { return a.array().derived(); }, f(x));
-#else
-    return f(x).array().eval();
-#endif
   }
 
-#ifdef USE_STANC3
   /**
    * Member function for applying a functor to a vector and subsequently
    * returning a vector. This is a variant of `apply` that does not construct
@@ -85,7 +76,6 @@ struct apply_vector_unary<T, require_eigen_t<T>> {
   static inline auto apply_no_holder(const T& x, const F& f) {
     return f(x).array().derived();
   }
-#endif
 
   /**
    * Member function for applying a functor to a vector and subsequently
@@ -105,7 +95,7 @@ struct apply_vector_unary<T, require_eigen_t<T>> {
 };
 
 /**
- * Specialisation for use with (non-nested) std::vectors. Inputs are mapped
+ * Specialization for use with (non-nested) std::vectors. Inputs are mapped
  * to Eigen column vectors and then the result is evaluated directly into the
  * returned std::vector (via Eigen::Map).
  *
@@ -137,7 +127,6 @@ struct apply_vector_unary<T, require_std_vector_vt<is_stan_scalar, T>> {
     return result;
   }
 
-#ifdef USE_STANC3
   /**
    * Member function for applying a functor to each container in an std::vector
    * and subsequently returning an std::vector of containers.
@@ -153,7 +142,6 @@ struct apply_vector_unary<T, require_std_vector_vt<is_stan_scalar, T>> {
   static inline auto apply_no_holder(const T& x, const F& f) {
     return apply(x, f);
   }
-#endif
 
   /**
    * Member function for applying a functor to a vector and subsequently
@@ -171,14 +159,8 @@ struct apply_vector_unary<T, require_std_vector_vt<is_stan_scalar, T>> {
   }
 };
 
-namespace internal {
-template <typename T>
-using is_container_or_var_matrix
-    = disjunction<is_container<T>, is_var_matrix<T>>;
-}
-
 /**
- * Specialisation for use with nested containers (std::vectors).
+ * Specialization for use with nested containers (std::vectors).
  * For each of the member functions, an std::vector with the appropriate
  * type (vector or scalar) is returned.
  *
@@ -189,7 +171,7 @@ using is_container_or_var_matrix
  */
 template <typename T>
 struct apply_vector_unary<
-    T, require_std_vector_vt<internal::is_container_or_var_matrix, T>> {
+    T, require_std_vector_vt<is_container_or_var_matrix, T>> {
   using T_vt = value_type_t<T>;
 
   /**
@@ -205,24 +187,15 @@ struct apply_vector_unary<
    */
   template <typename F>
   static inline auto apply(const T& x, const F& f) {
-    size_t x_size = x.size();
-#ifdef USE_STANC3
     using T_return
         = plain_type_t<decltype(apply_vector_unary<T_vt>::apply(x[0], f))>;
-#else
-    using T_return = decltype(apply_vector_unary<T_vt>::apply(x[0], f));
-#endif
-    std::vector<T_return> result(x_size);
-    for (size_t i = 0; i < x_size; ++i)
-#ifdef USE_STANC3
-      result[i] = apply_vector_unary<T_vt>::apply_no_holder(x[i], f);
-#else
-      result[i] = apply_vector_unary<T_vt>::apply(x[i], f);
-#endif
+    std::vector<T_return> result(x.size());
+    std::transform(x.begin(), x.end(), result.begin(), [&f](auto&& xx) {
+      return apply_vector_unary<T_vt>::apply_no_holder(xx, f);
+    });
     return result;
   }
 
-#ifdef USE_STANC3
   /**
    * Member function for applying a functor to each container in an std::vector
    * and subsequently returning an std::vector of containers.
@@ -238,7 +211,6 @@ struct apply_vector_unary<
   static inline auto apply_no_holder(const T& x, const F& f) {
     return apply(x, f);
   }
-#endif
 
   /**
    * Member function for applying a functor to each container in an

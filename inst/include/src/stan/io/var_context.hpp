@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <complex>
 
 namespace stan {
 
@@ -54,6 +55,21 @@ class var_context {
    * @return Sequence of values for the named variable.
    */
   virtual std::vector<double> vals_r(const std::string& name) const = 0;
+
+  /**
+   * Return the complex floating point values for the variable of the
+   * specified variable name in last-index-major order.  This
+   * method should cast integers to floating point values if the
+   * values of the named variable are all integers.
+   *
+   * <p>If there is no variable of the specified name, the empty
+   * vector is returned.
+   *
+   * @param name Name of variable.
+   * @return Sequence of values for the named variable.
+   */
+  virtual std::vector<std::complex<double>> vals_c(
+      const std::string& name) const = 0;
 
   /**
    * Return the dimensions for the specified floating point variable.
@@ -111,15 +127,13 @@ class var_context {
    */
   virtual void names_i(std::vector<std::string>& names) const = 0;
 
-#ifdef USE_STANC3
-
   /**
    * Check variable dimensions against variable declaration.
    *
    * @param stage stan program processing stage
    * @param name variable name
    * @param base_type declared stan variable type
-   * @param dims variable dimensions
+   * @param dims_declared variable dimensions
    * @throw std::runtime_error if mismatch between declared
    *        dimensions and dimensions found in context.
    */
@@ -143,82 +157,6 @@ class var_context {
     }
     msg << ')';
   }
-
-#else
-
-  /**
-   * Append vector of dimensions to message string.
-   *
-   * @param msg message string
-   * @param dims array of dimension sizes
-   */
-  void add_vec(std::stringstream& msg, const std::vector<size_t>& dims) const {
-    msg << '(';
-    for (size_t i = 0; i < dims.size(); ++i) {
-      if (i > 0)
-        msg << ',';
-      msg << dims[i];
-    }
-    msg << ')';
-  }
-
-  /*
-   * Check variable dimensions against variable declaration.
-   *
-   * @param stage stan program processing stage
-   * @param name variable name
-   * @param base_type declared stan variable type
-   * @param dims variable dimensions
-   * @throw std::runtime_error if mismatch between declared
-   *        dimensions and dimensions found in context.
-   */
-  void validate_dims(const std::string& stage, const std::string& name,
-                     const std::string& base_type,
-                     const std::vector<size_t>& dims_declared) const {
-    bool is_int_type = base_type == "int";
-    if (is_int_type) {
-      if (!contains_i(name)) {
-        std::stringstream msg;
-        msg << (contains_r(name) ? "int variable contained non-int values"
-                                 : "variable does not exist")
-            << "; processing stage=" << stage << "; variable name=" << name
-            << "; base type=" << base_type;
-        throw std::runtime_error(msg.str());
-      }
-    } else {
-      if (!contains_r(name)) {
-        std::stringstream msg;
-        msg << "variable does not exist"
-            << "; processing stage=" << stage << "; variable name=" << name
-            << "; base type=" << base_type;
-        throw std::runtime_error(msg.str());
-      }
-    }
-    std::vector<size_t> dims = dims_r(name);
-    if (dims.size() != dims_declared.size()) {
-      std::stringstream msg;
-      msg << "mismatch in number dimensions declared and found in context"
-          << "; processing stage=" << stage << "; variable name=" << name
-          << "; dims declared=";
-      add_vec(msg, dims_declared);
-      msg << "; dims found=";
-      add_vec(msg, dims);
-      throw std::runtime_error(msg.str());
-    }
-    for (size_t i = 0; i < dims.size(); ++i) {
-      if (dims_declared[i] != dims[i]) {
-        std::stringstream msg;
-        msg << "mismatch in dimension declared and found in context"
-            << "; processing stage=" << stage << "; variable name=" << name
-            << "; position=" << i << "; dims declared=";
-        add_vec(msg, dims_declared);
-        msg << "; dims found=";
-        add_vec(msg, dims);
-        throw std::runtime_error(msg.str());
-      }
-    }
-  }
-#endif
 
   static std::vector<size_t> to_vec() { return std::vector<size_t>(); }
   static std::vector<size_t> to_vec(size_t n1) {

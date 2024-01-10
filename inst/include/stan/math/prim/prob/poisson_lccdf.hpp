@@ -5,6 +5,7 @@
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/as_column_vector_or_scalar.hpp>
 #include <stan/math/prim/fun/as_array_or_scalar.hpp>
+#include <stan/math/prim/fun/as_value_column_array_or_scalar.hpp>
 #include <stan/math/prim/fun/constants.hpp>
 #include <stan/math/prim/fun/exp.hpp>
 #include <stan/math/prim/fun/gamma_p.hpp>
@@ -16,7 +17,7 @@
 #include <stan/math/prim/fun/size_zero.hpp>
 #include <stan/math/prim/fun/to_ref.hpp>
 #include <stan/math/prim/fun/value_of.hpp>
-#include <stan/math/prim/functor/operands_and_partials.hpp>
+#include <stan/math/prim/functor/partials_propagator.hpp>
 #include <cmath>
 #include <limits>
 
@@ -35,14 +36,9 @@ return_type_t<T_rate> poisson_lccdf(const T_n& n, const T_rate& lambda) {
   T_n_ref n_ref = n;
   T_lambda_ref lambda_ref = lambda;
 
-  const auto& n_col = as_column_vector_or_scalar(n_ref);
-  const auto& lambda_col = as_column_vector_or_scalar(lambda_ref);
-
-  const auto& n_arr = as_array_or_scalar(n_col);
-  const auto& lambda_arr = as_array_or_scalar(lambda_col);
-
-  ref_type_t<decltype(value_of(n_arr))> n_val = value_of(n_arr);
-  ref_type_t<decltype(value_of(lambda_arr))> lambda_val = value_of(lambda_arr);
+  decltype(auto) n_val = to_ref(as_value_column_array_or_scalar(n_ref));
+  decltype(auto) lambda_val
+      = to_ref(as_value_column_array_or_scalar(lambda_ref));
 
   check_nonnegative(function, "Rate parameter", lambda_val);
 
@@ -50,7 +46,7 @@ return_type_t<T_rate> poisson_lccdf(const T_n& n, const T_rate& lambda) {
     return 0;
   }
 
-  operands_and_partials<T_lambda_ref> ops_partials(lambda_ref);
+  auto ops_partials = make_partials_propagator(lambda_ref);
 
   if (sum(promote_scalar<int>(n_val < 0))) {
     return ops_partials.build(0.0);
@@ -61,8 +57,8 @@ return_type_t<T_rate> poisson_lccdf(const T_n& n, const T_rate& lambda) {
   T_partials_return P = sum(log_Pi);
 
   if (!is_constant_all<T_rate>::value) {
-    ops_partials.edge1_.partials_ = exp(n_val * log(lambda_val) - lambda_val
-                                        - lgamma(n_val + 1.0) - log_Pi);
+    partials<0>(ops_partials) = exp(n_val * log(lambda_val) - lambda_val
+                                    - lgamma(n_val + 1.0) - log_Pi);
   }
 
   return ops_partials.build(P);

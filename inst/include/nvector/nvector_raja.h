@@ -2,7 +2,7 @@
  * Programmer(s): Slaven Peles, Cody J. Balos, Daniel McGreer @ LLNL
  * -----------------------------------------------------------------
  * SUNDIALS Copyright Start
- * Copyright (c) 2002-2020, Lawrence Livermore National Security
+ * Copyright (c) 2002-2022, Lawrence Livermore National Security
  * and Southern Methodist University.
  * All rights reserved.
  *
@@ -56,16 +56,22 @@ typedef struct _N_VectorContent_Raja *N_VectorContent_Raja;
  * -----------------------------------------------------------------
  */
 
-SUNDIALS_EXPORT N_Vector N_VNewEmpty_Raja();
-SUNDIALS_EXPORT N_Vector N_VNew_Raja(sunindextype length);
-SUNDIALS_EXPORT N_Vector N_VNewManaged_Raja(sunindextype length);
+SUNDIALS_EXPORT N_Vector N_VNewEmpty_Raja(SUNContext sunctx);
+SUNDIALS_EXPORT N_Vector N_VNew_Raja(sunindextype length, SUNContext sunctx);
+SUNDIALS_EXPORT N_Vector N_VNewManaged_Raja(sunindextype length,
+                                            SUNContext sunctx);
 SUNDIALS_EXPORT N_Vector N_VNewWithMemHelp_Raja(sunindextype length,
                                                 booleantype use_managed_mem,
-                                                SUNMemoryHelper helper);
-SUNDIALS_EXPORT N_Vector N_VMake_Raja(sunindextype length, realtype *h_vdata, realtype *d_vdata);
-SUNDIALS_EXPORT N_Vector N_VMakeManaged_Raja(sunindextype length, realtype *vdata);
+                                                SUNMemoryHelper helper,
+                                                SUNContext sunctx);
+SUNDIALS_EXPORT N_Vector N_VMake_Raja(sunindextype length, realtype *h_vdata,
+                                      realtype *d_vdata, SUNContext sunctx);
+SUNDIALS_EXPORT N_Vector N_VMakeManaged_Raja(sunindextype length,
+                                             realtype *vdata,
+                                             SUNContext sunctx);
 SUNDIALS_EXPORT void N_VSetHostArrayPointer_Raja(realtype* h_vdata, N_Vector v);
-SUNDIALS_EXPORT void N_VSetDeviceArrayPointer_Raja(realtype* d_vdata, N_Vector v);
+SUNDIALS_EXPORT void N_VSetDeviceArrayPointer_Raja(realtype* d_vdata,
+                                                   N_Vector v);
 SUNDIALS_EXPORT booleantype N_VIsManagedMemory_Raja(N_Vector x);
 SUNDIALS_EXPORT void N_VCopyToDevice_Raja(N_Vector v);
 SUNDIALS_EXPORT void N_VCopyFromDevice_Raja(N_Vector v);
@@ -108,7 +114,6 @@ SUNDIALS_EXPORT N_Vector N_VCloneEmpty_Raja(N_Vector w);
 SUNDIALS_EXPORT N_Vector N_VClone_Raja(N_Vector w);
 SUNDIALS_EXPORT void N_VDestroy_Raja(N_Vector v);
 SUNDIALS_EXPORT void N_VSpace_Raja(N_Vector v, sunindextype *lrw, sunindextype *liw);
-SUNDIALS_EXPORT realtype *N_VGetArrayPointer_Raja(N_Vector v);
 SUNDIALS_EXPORT void N_VSetArrayPointer_Raja(realtype *v_data, N_Vector v);
 
 /* standard vector operations */

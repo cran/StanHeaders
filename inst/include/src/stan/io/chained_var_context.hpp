@@ -2,6 +2,7 @@
 #define STAN_IO_CHAINED_VAR_CONTEXT_HPP
 
 #include <stan/io/var_context.hpp>
+#include <stan/io/validate_dims.hpp>
 #include <string>
 #include <vector>
 
@@ -33,6 +34,10 @@ class chained_var_context : public var_context {
     return vc1_.contains_r(name) ? vc1_.vals_r(name) : vc2_.vals_r(name);
   }
 
+  std::vector<std::complex<double>> vals_c(const std::string& name) const {
+    return vc1_.contains_r(name) ? vc1_.vals_c(name) : vc2_.vals_c(name);
+  }
+
   std::vector<int> vals_i(const std::string& name) const {
     return vc1_.contains_i(name) ? vc1_.vals_i(name) : vc2_.vals_i(name);
   }
@@ -59,7 +64,6 @@ class chained_var_context : public var_context {
     names.insert(names.end(), names2.begin(), names2.end());
   }
 
-#ifdef USE_STANC3
   /**
    * Check variable dimensions against variable declaration.
    * Only used for data read in from file.
@@ -67,7 +71,7 @@ class chained_var_context : public var_context {
    * @param stage stan program processing stage
    * @param name variable name
    * @param base_type declared stan variable type
-   * @param dims variable dimensions
+   * @param dims_declared variable dimensions
    * @throw std::runtime_error if mismatch between declared
    *        dimensions and dimensions found in context.
    */
@@ -76,7 +80,6 @@ class chained_var_context : public var_context {
                      const std::vector<size_t>& dims_declared) const {
     stan::io::validate_dims(*this, stage, name, base_type, dims_declared);
   }
-#endif
 };
 }  // namespace io
 }  // namespace stan
