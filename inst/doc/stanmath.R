@@ -20,7 +20,7 @@ set.seed(12345)
 ## -------------------------------------------------------------------------------------------------
 example(stanFunction, package = "StanHeaders", run.dontrun = TRUE)
 
-## ---- echo = FALSE, warning = FALSE, class.output="scroll-100"------------------------------------
+## ----echo = FALSE, warning = FALSE, class.output="scroll-100"-------------------------------------
 if (length(functions) %% 2 == 1) {
   functions <- c(functions, "")
 }
@@ -62,10 +62,10 @@ tail(psapply(n = as.list(odd))) == 1 # check your process manager while this is 
 ## -------------------------------------------------------------------------------------------------
 stopifnot(all.equal(1, check_logarithmic_PMF(p = 1 / sqrt(2))))
 
-## ---- echo = FALSE, comment = ""------------------------------------------------------------------
+## ----echo = FALSE, comment = ""-------------------------------------------------------------------
 cat(readLines("sparselm_stan.hpp"), sep = "\n")
 
-## ---- message = FALSE-----------------------------------------------------------------------------
+## ----message = FALSE------------------------------------------------------------------------------
 library(Rcpp)
 tf <- tempfile(fileext = "Module.cpp")
 exposeClass("sparselm_stan",
