@@ -1,6 +1,6 @@
 Package: StanHeaders
 Title: C++ Header Files for Stan
-Version: 2.32.6
+Version: 2.32.7
 Authors@R: c(person("Ben",family="Goodrich", email="benjamin.goodrich@columbia.edu", role=c('cre','aut')),
              person("Joshua", "Pritikin", role = "ctb"),
              person("Andrew", "Gelman", role = "aut"),
@@ -36,14 +36,15 @@ Description: The C++ header files of the Stan project are provided by this packa
 Imports: RcppParallel (>= 5.1.4)
 Suggests: Rcpp, BH (>= 1.75.0-0), knitr (>= 1.36), rmarkdown, Matrix,
         methods, rstan, withr
-LinkingTo: RcppEigen (>= 0.3.4.0.0), RcppParallel (>= 5.1.4)
+LinkingTo: RcppEigen (>= 0.3.3.9.3), RcppParallel (>= 5.1.4)
 VignetteBuilder: knitr
 SystemRequirements: GNU make, pandoc
-Depends: R (>= 3.6.0)
+Depends: R (>= 3.4.0)
 License: BSD_3_clause + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.1.2
 NeedsCompilation: yes
+Packaged: 2024-04-24 22:19:49 UTC; ben
 Author: Ben Goodrich [cre, aut],
   Joshua Pritikin [ctb],
   Andrew Gelman [aut],
@@ -74,5 +75,4 @@ Author: Ben Goodrich [cre, aut],
   Southern Methodist University [cph] (CVODES)
 Maintainer: Ben Goodrich <benjamin.goodrich@columbia.edu>
 Repository: CRAN
-Date/Publication: 2024-03-01 15:12:37 UTC
-Packaged: 2024-03-01 03:21:11 UTC; ben
+Date/Publication: 2024-04-25 04:10:03 UTC

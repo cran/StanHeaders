@@ -1,4 +1,4 @@
-af2708e46b7716e7ce66d50e910d2151 *DESCRIPTION
+8f94a592bd78bbbba213d6d6afe25c0e *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 c154f76504a2c135d15e3a5a519e6034 *NAMESPACE
 40e49061477c07658193faa24f3bd9b0 *R/Flags.R
@@ -8,7 +8,7 @@ c34ecf0a899536555d3179c8ea6b5336 *inst/CITATION
 ddfb7fe84a5f61eaec00c645f5a5c905 *inst/doc/sparselm_stan.hpp
 bd4d01db136f8c0d0fa8fd3e348359bb *inst/doc/stanmath.R
 33c9e17d63127207e090c353b627fc98 *inst/doc/stanmath.Rmd
-99aa9c88ea49c33b9a07bb51006e016a *inst/doc/stanmath.html
+7733359a52a8568f19744cb60974d791 *inst/doc/stanmath.html
 de4af08eaf10fb0e2af7e7eb9f8b09e0 *inst/include/cvodes/cvodes.h
 cb59c489739b54654b08e559cf2fc55a *inst/include/cvodes/cvodes_bandpre.h
 4bd02b30179012ac4c2ca5f9b9468ec8 *inst/include/cvodes/cvodes_bbdpre.h
@@ -379,7 +379,7 @@ e649c62ad21ccbf1a0e7166158056096 *inst/include/stan/math/fwd/meta.hpp
 4993e53d3ef8c626c1f36493684f9da3 *inst/include/stan/math/fwd/meta/partials_type.hpp
 31fec36c4f29130f4bbb26bfe26c0c6e *inst/include/stan/math/fwd/prob.hpp
 8d375113b8accedc4654e258adc59396 *inst/include/stan/math/fwd/prob/std_normal_log_qf.hpp
-42e64c8aad1e2d1a6d6204bc7a429cc1 *inst/include/stan/math/memory/stack_alloc.hpp
+73197c84e03eff56127cf035314b3ffd *inst/include/stan/math/memory/stack_alloc.hpp
 4929dce845e6e24ad684aef44deaff48 *inst/include/stan/math/mix.hpp
 1da6bdda1bde9133efb775496a118a91 *inst/include/stan/math/mix/fun.hpp
 b7dd6209dda769cff2ac9269a69509fb *inst/include/stan/math/mix/fun/typedefs.hpp
@@ -1136,7 +1136,7 @@ f850dc88a8785cb6b3626baa4bf32537 *inst/include/stan/math/prim/fun/matrix_exp_act
 130115e7a2fbc7e83ffc71a803a8d50e *inst/include/stan/math/prim/fun/matrix_exp_multiply.hpp
 6086fff5c77a4ef0a30cf665bd6bf30e *inst/include/stan/math/prim/fun/matrix_exp_pade.hpp
 2fa3b6d0d06addf347c18268b9744ca6 *inst/include/stan/math/prim/fun/matrix_power.hpp
-173695549d95984cef31e348e7ccf528 *inst/include/stan/math/prim/fun/max.hpp
+0b9c851b2509c796a7811442a0375cf0 *inst/include/stan/math/prim/fun/max.hpp
 59e95c1f044f20ed0b69ec3ddc5e468c *inst/include/stan/math/prim/fun/max_size.hpp
 4d2bba8359d78a2e1825b98d1550bbc5 *inst/include/stan/math/prim/fun/max_size_mvt.hpp
 cfa82512b8227a00430f9d5a3a43c1d9 *inst/include/stan/math/prim/fun/mdivide_left.hpp
@@ -1150,7 +1150,7 @@ a5d6e81cf6bf56c0291691e9a4ddfe0f *inst/include/stan/math/prim/fun/mdivide_right_
 8c4afeb6f993c2b3d08ba14eb85d8ba9 *inst/include/stan/math/prim/fun/mdivide_right_tri.hpp
 b21fcc9f596ee074a642a304aeb1e268 *inst/include/stan/math/prim/fun/mdivide_right_tri_low.hpp
 926c3fe10a8a2f205db7ef2867c3dfda *inst/include/stan/math/prim/fun/mean.hpp
-eac16680a64a5b7b32d9520faa643a4f *inst/include/stan/math/prim/fun/min.hpp
+328921c510f0302300517a11205b7f5e *inst/include/stan/math/prim/fun/min.hpp
 2a2e0bb82b204e1073ec7afb398b89eb *inst/include/stan/math/prim/fun/minus.hpp
 085475b1e83156ca5afacd145dbd045f *inst/include/stan/math/prim/fun/modified_bessel_first_kind.hpp
 ab0be77631e9fa159317ad94d99e4a9f *inst/include/stan/math/prim/fun/modified_bessel_second_kind.hpp
@@ -1285,7 +1285,7 @@ f46df05a874ed23f33e2751aac2c8314 *inst/include/stan/math/prim/fun/ub_constrain.h
 0defe43648e7448173e715a110cd0c5b *inst/include/stan/math/prim/fun/unit_vector_constrain.hpp
 963d059d66e175deb22bf4742dc396c8 *inst/include/stan/math/prim/fun/unit_vector_free.hpp
 0c20c0d40cabf4b0804f630694a0dc7c *inst/include/stan/math/prim/fun/unitspaced_array.hpp
-1a0b26ec9f151a2120a28ccae67b15ce *inst/include/stan/math/prim/fun/value_of.hpp
+4cfab6826db41a2b85aabe3ce455ada1 *inst/include/stan/math/prim/fun/value_of.hpp
 cf783938b57a613c7fed8ab8559baf31 *inst/include/stan/math/prim/fun/value_of_rec.hpp
 911ce93b0623296a900aecf09500cc17 *inst/include/stan/math/prim/fun/variance.hpp
 656bd609774439c2b1ffadb07889f16c *inst/include/stan/math/prim/fun/vec_concat.hpp
@@ -1361,7 +1361,7 @@ ff8ff4b0ac2177af765fdae4732c1f5d *inst/include/stan/math/prim/meta/is_container.
 cc46663f63f17f3345f1b0187347ae09 *inst/include/stan/math/prim/meta/is_detected.hpp
 c271b9415494f059df9f6264d1cb0eea *inst/include/stan/math/prim/meta/is_double_or_int.hpp
 5fd285dd6bd969c43a2ce0d2aeae4a79 *inst/include/stan/math/prim/meta/is_eigen.hpp
-3d0019a69ade95c040a5323177034040 *inst/include/stan/math/prim/meta/is_eigen_dense_base.hpp
+5a70c2ea85b10d3cabe230bc592a310d *inst/include/stan/math/prim/meta/is_eigen_dense_base.hpp
 1f3bd6d6c98bcfe264ae9ac9f71560d5 *inst/include/stan/math/prim/meta/is_eigen_dense_dynamic.hpp
 1587ab0807c5b003ad76b2094593cfb6 *inst/include/stan/math/prim/meta/is_eigen_matrix.hpp
 a5e85d9551b37b87b856fd679ed0cd50 *inst/include/stan/math/prim/meta/is_eigen_matrix_base.hpp
@@ -1390,7 +1390,7 @@ e7da865829a134331ad5bba0571c1a57 *inst/include/stan/math/prim/meta/is_vector_lik
 075fd934c347d02802be944fe7713f59 *inst/include/stan/math/prim/meta/plain_type.hpp
 68b43a4368512612ec80efc8dc8fee98 *inst/include/stan/math/prim/meta/possibly_sum.hpp
 273dec0324918b0857fb30b929c26307 *inst/include/stan/math/prim/meta/promote_args.hpp
-565f02c9036a0ae1938c83d533e0421e *inst/include/stan/math/prim/meta/promote_scalar_type.hpp
+fd3f50ea1041e5ee26bdf44846aadfaf *inst/include/stan/math/prim/meta/promote_scalar_type.hpp
 65df52477c731dfe86b1c650d2b11e31 *inst/include/stan/math/prim/meta/ref_type.hpp
 4991157382a14353e2c0635e667b4d18 *inst/include/stan/math/prim/meta/require_generics.hpp
 6028ce2c207e9a010c703b970df4a3d7 *inst/include/stan/math/prim/meta/require_helpers.hpp
@@ -1779,7 +1779,7 @@ a7468f68d0f46bca38c8eb97681fd766 *inst/include/stan/math/rev.hpp
 bb711c1dde0e3a09639e7573f4a94148 *inst/include/stan/math/rev/core/Eigen_NumTraits.hpp
 1f70a6f3552b47e485066b4ded449ea6 *inst/include/stan/math/rev/core/accumulate_adjoints.hpp
 89489d3b6596201974b52cf855c4ce8e *inst/include/stan/math/rev/core/arena_allocator.hpp
-429bc069cdc97705e6818f27c7b70b48 *inst/include/stan/math/rev/core/arena_matrix.hpp
+3c2d27c112b288b2ded35ef9c3a33bed *inst/include/stan/math/rev/core/arena_matrix.hpp
 3329424b843894b26b35ebbeaad755ae *inst/include/stan/math/rev/core/autodiffstackstorage.hpp
 a71aa89905c31b8852c412ea43aa3821 *inst/include/stan/math/rev/core/build_vari_array.hpp
 43e393c782a01601cdd431f17ecc1720 *inst/include/stan/math/rev/core/callback_vari.hpp
@@ -1842,9 +1842,9 @@ f6abe65f1b0626ec7e88af831e1cab97 *inst/include/stan/math/rev/core/std_complex.hp
 4958f53f6968b3472843d84eed259275 *inst/include/stan/math/rev/core/stored_gradient_vari.hpp
 9fa7b0bbe2b1692b46a634b6a195746b *inst/include/stan/math/rev/core/typedefs.hpp
 1d290398e626d6a85a7353bb2c002f14 *inst/include/stan/math/rev/core/v_vari.hpp
-276071a741a8a3ebe3c1e4e5daeac169 *inst/include/stan/math/rev/core/var.hpp
-89140464c676781e7dd44470804cafcf *inst/include/stan/math/rev/core/var_value_fwd_declare.hpp
-ce7a14ccf0d75871e22f4f01dc9b8bea *inst/include/stan/math/rev/core/vari.hpp
+60105a931d773ad57fcc3c1902e5d356 *inst/include/stan/math/rev/core/var.hpp
+bbef7f1d0a2bc43c7135843a39ab5f67 *inst/include/stan/math/rev/core/var_value_fwd_declare.hpp
+fd1897da55b187482895be3aaa1f1cc0 *inst/include/stan/math/rev/core/vari.hpp
 18dca63624a6b14b617a04d3e960f37e *inst/include/stan/math/rev/core/vd_vari.hpp
 708b16c7821b39690fce30b23c0394e7 *inst/include/stan/math/rev/core/vdd_vari.hpp
 04e01ccd5afbfa50ad609d7054caddbc *inst/include/stan/math/rev/core/vdv_vari.hpp
@@ -1853,7 +1853,7 @@ ce7a14ccf0d75871e22f4f01dc9b8bea *inst/include/stan/math/rev/core/vari.hpp
 952a30d361a54309ea957986771ec38f *inst/include/stan/math/rev/core/vvd_vari.hpp
 17f0e806bbbb7d1c5c45ed4d2758de50 *inst/include/stan/math/rev/core/vvv_vari.hpp
 f9f642c444690cbe637a9f05b3f58b63 *inst/include/stan/math/rev/core/zero_adjoints.hpp
-db6e71af7e4ca37c1b32373ea1200d0d *inst/include/stan/math/rev/fun.hpp
+683231054fb3c33ea5418c5f6e536a0f *inst/include/stan/math/rev/fun.hpp
 699c97d24b1ada9d49f68275ff7ea6be *inst/include/stan/math/rev/fun/LDLT_factor.hpp
 89f4200d4657cae34f7d7fb05dc84f13 *inst/include/stan/math/rev/fun/Phi.hpp
 88fca7514067dc6d56441985d069cb44 *inst/include/stan/math/rev/fun/Phi_approx.hpp
@@ -1891,7 +1891,7 @@ f39ba01a1734b8d4756c97f0bb3d34db *inst/include/stan/math/rev/fun/cosh.hpp
 8ddec09199202c1a0a23572c161be89f *inst/include/stan/math/rev/fun/cov_exp_quad.hpp
 a035029c862bc7ada9ab3c8cf6498930 *inst/include/stan/math/rev/fun/cov_matrix_constrain.hpp
 4cc42af7f61227914b4ce576309e0eb3 *inst/include/stan/math/rev/fun/cov_matrix_constrain_lkj.hpp
-69a925f1e93b5877f43f6aa4f5bfa2f2 *inst/include/stan/math/rev/fun/csr_matrix_times_vector.hpp
+4d442c798c6270dbb037c6c6448fb1cb *inst/include/stan/math/rev/fun/csr_matrix_times_vector.hpp
 88db686ab5672dabc6ab12228088a70e *inst/include/stan/math/rev/fun/cumulative_sum.hpp
 5fc2bffe35c0d5fa0102662165b19220 *inst/include/stan/math/rev/fun/determinant.hpp
 20bb4f91aeb7b16ad298377d7f4ececc *inst/include/stan/math/rev/fun/diag_post_multiply.hpp
@@ -2032,8 +2032,9 @@ b458ca9f52204b9ec6b218cd98b6590a *inst/include/stan/math/rev/fun/svd_V.hpp
 9961182ef7e3062a6081db1ed7afd4c7 *inst/include/stan/math/rev/fun/tcrossprod.hpp
 979f5ca3f948a479b6f4f66e521211a0 *inst/include/stan/math/rev/fun/tgamma.hpp
 7b88e6c8bbaa4eb3ba08d9bd475bfd0e *inst/include/stan/math/rev/fun/to_arena.hpp
+e7b031d48e0442e48880a0b4b6fbc8b9 *inst/include/stan/math/rev/fun/to_soa_sparse_matrix.hpp
 f2e4f075d344d60204232a5b171685d5 *inst/include/stan/math/rev/fun/to_var.hpp
-2754b9c917109212b6b7195166784530 *inst/include/stan/math/rev/fun/to_var_value.hpp
+5564d6d405b94dd86ec1e22c523ba6b0 *inst/include/stan/math/rev/fun/to_var_value.hpp
 a0e04f48a523c78cb70945f6d2e92659 *inst/include/stan/math/rev/fun/to_vector.hpp
 c8234a34ec8a767bfd0eeb720f2d57db *inst/include/stan/math/rev/fun/trace.hpp
 adace39242226e684f326a2b15e4477d *inst/include/stan/math/rev/fun/trace_gen_inv_quad_form_ldlt.hpp
@@ -2082,8 +2083,8 @@ c6d382a4139e3c9a79ca4aa4f1c2e19e *inst/include/stan/math/rev/functor/partials_pr
 c12026889d02625a9c00d81c021cbabc *inst/include/stan/math/rev/functor/solve_newton.hpp
 b20bd9b87f2aa8965a99cb0e86d7946f *inst/include/stan/math/rev/functor/solve_powell.hpp
 a69264c0dd6ce6eee3c39a37e3d1c8aa *inst/include/stan/math/rev/meta.hpp
-ffa05e45433da3807f7061799ca0715b *inst/include/stan/math/rev/meta/arena_type.hpp
-3f7e530ac1c2a011208d4173cf57717b *inst/include/stan/math/rev/meta/conditional_var_value.hpp
+20735d76d7b734f0c5f6b9bf2193469b *inst/include/stan/math/rev/meta/arena_type.hpp
+bba85b5a7107e3d05a8d6762f2a3c2fb *inst/include/stan/math/rev/meta/conditional_var_value.hpp
 93603693b8f1db5832da980f80d427cc *inst/include/stan/math/rev/meta/is_arena_matrix.hpp
 50a565370eafa7c28bd04c1b0738cb47 *inst/include/stan/math/rev/meta/is_rev_matrix.hpp
 55631fb57fbebe12d265d4399377d2f1 *inst/include/stan/math/rev/meta/is_var.hpp
