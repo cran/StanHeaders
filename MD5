@@ -1,4 +1,4 @@
-8f94a592bd78bbbba213d6d6afe25c0e *DESCRIPTION
+f9c470beba632add9749958be7a97fa1 *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 c154f76504a2c135d15e3a5a519e6034 *NAMESPACE
 40e49061477c07658193faa24f3bd9b0 *R/Flags.R
@@ -8,7 +8,7 @@ c34ecf0a899536555d3179c8ea6b5336 *inst/CITATION
 ddfb7fe84a5f61eaec00c645f5a5c905 *inst/doc/sparselm_stan.hpp
 bd4d01db136f8c0d0fa8fd3e348359bb *inst/doc/stanmath.R
 33c9e17d63127207e090c353b627fc98 *inst/doc/stanmath.Rmd
-7733359a52a8568f19744cb60974d791 *inst/doc/stanmath.html
+89d00d4bb1ac9d7006820491a9bfb39d *inst/doc/stanmath.html
 de4af08eaf10fb0e2af7e7eb9f8b09e0 *inst/include/cvodes/cvodes.h
 cb59c489739b54654b08e559cf2fc55a *inst/include/cvodes/cvodes_bandpre.h
 4bd02b30179012ac4c2ca5f9b9468ec8 *inst/include/cvodes/cvodes_bbdpre.h
@@ -1136,7 +1136,7 @@ f850dc88a8785cb6b3626baa4bf32537 *inst/include/stan/math/prim/fun/matrix_exp_act
 130115e7a2fbc7e83ffc71a803a8d50e *inst/include/stan/math/prim/fun/matrix_exp_multiply.hpp
 6086fff5c77a4ef0a30cf665bd6bf30e *inst/include/stan/math/prim/fun/matrix_exp_pade.hpp
 2fa3b6d0d06addf347c18268b9744ca6 *inst/include/stan/math/prim/fun/matrix_power.hpp
-0b9c851b2509c796a7811442a0375cf0 *inst/include/stan/math/prim/fun/max.hpp
+173695549d95984cef31e348e7ccf528 *inst/include/stan/math/prim/fun/max.hpp
 59e95c1f044f20ed0b69ec3ddc5e468c *inst/include/stan/math/prim/fun/max_size.hpp
 4d2bba8359d78a2e1825b98d1550bbc5 *inst/include/stan/math/prim/fun/max_size_mvt.hpp
 cfa82512b8227a00430f9d5a3a43c1d9 *inst/include/stan/math/prim/fun/mdivide_left.hpp
@@ -1150,7 +1150,7 @@ a5d6e81cf6bf56c0291691e9a4ddfe0f *inst/include/stan/math/prim/fun/mdivide_right_
 8c4afeb6f993c2b3d08ba14eb85d8ba9 *inst/include/stan/math/prim/fun/mdivide_right_tri.hpp
 b21fcc9f596ee074a642a304aeb1e268 *inst/include/stan/math/prim/fun/mdivide_right_tri_low.hpp
 926c3fe10a8a2f205db7ef2867c3dfda *inst/include/stan/math/prim/fun/mean.hpp
-328921c510f0302300517a11205b7f5e *inst/include/stan/math/prim/fun/min.hpp
+eac16680a64a5b7b32d9520faa643a4f *inst/include/stan/math/prim/fun/min.hpp
 2a2e0bb82b204e1073ec7afb398b89eb *inst/include/stan/math/prim/fun/minus.hpp
 085475b1e83156ca5afacd145dbd045f *inst/include/stan/math/prim/fun/modified_bessel_first_kind.hpp
 ab0be77631e9fa159317ad94d99e4a9f *inst/include/stan/math/prim/fun/modified_bessel_second_kind.hpp
@@ -1684,7 +1684,7 @@ bc7d1da07ddf014ad239901a1ece35cf *inst/include/stan/math/prim/prob/poisson_binom
 a012fec710bb48bb591f69de8da238fc *inst/include/stan/math/prim/prob/poisson_ccdf_log.hpp
 d93a8844d42379e2bc855fd1eb3ef6c8 *inst/include/stan/math/prim/prob/poisson_cdf.hpp
 f72da09359ba9f1c653ca1466ef8edd8 *inst/include/stan/math/prim/prob/poisson_cdf_log.hpp
-a3134265e234a9c62348968677e6d8b1 *inst/include/stan/math/prim/prob/poisson_lccdf.hpp
+0ad7b3fae4e00e78132ae211f2cbc433 *inst/include/stan/math/prim/prob/poisson_lccdf.hpp
 03ee1bfae58c24c09233fabab5e045f7 *inst/include/stan/math/prim/prob/poisson_lcdf.hpp
 ee30439184f9383ff7fb5346a95f2d0e *inst/include/stan/math/prim/prob/poisson_log.hpp
 7eedce166f7457fae132c4b0effda948 *inst/include/stan/math/prim/prob/poisson_log_glm_log.hpp
