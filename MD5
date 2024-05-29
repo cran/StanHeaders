@@ -1,4 +1,4 @@
-f9c470beba632add9749958be7a97fa1 *DESCRIPTION
+dc6bc3c67066aef06ef7d668cb52594b *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 c154f76504a2c135d15e3a5a519e6034 *NAMESPACE
 40e49061477c07658193faa24f3bd9b0 *R/Flags.R
@@ -8,7 +8,7 @@ c34ecf0a899536555d3179c8ea6b5336 *inst/CITATION
 ddfb7fe84a5f61eaec00c645f5a5c905 *inst/doc/sparselm_stan.hpp
 bd4d01db136f8c0d0fa8fd3e348359bb *inst/doc/stanmath.R
 33c9e17d63127207e090c353b627fc98 *inst/doc/stanmath.Rmd
-89d00d4bb1ac9d7006820491a9bfb39d *inst/doc/stanmath.html
+c8f0a3f73ee75607b8de0b25b01f2d76 *inst/doc/stanmath.html
 de4af08eaf10fb0e2af7e7eb9f8b09e0 *inst/include/cvodes/cvodes.h
 cb59c489739b54654b08e559cf2fc55a *inst/include/cvodes/cvodes_bandpre.h
 4bd02b30179012ac4c2ca5f9b9468ec8 *inst/include/cvodes/cvodes_bbdpre.h
@@ -379,7 +379,7 @@ e649c62ad21ccbf1a0e7166158056096 *inst/include/stan/math/fwd/meta.hpp
 4993e53d3ef8c626c1f36493684f9da3 *inst/include/stan/math/fwd/meta/partials_type.hpp
 31fec36c4f29130f4bbb26bfe26c0c6e *inst/include/stan/math/fwd/prob.hpp
 8d375113b8accedc4654e258adc59396 *inst/include/stan/math/fwd/prob/std_normal_log_qf.hpp
-73197c84e03eff56127cf035314b3ffd *inst/include/stan/math/memory/stack_alloc.hpp
+cada628bdc07c81db92e97913c0ed44c *inst/include/stan/math/memory/stack_alloc.hpp
 4929dce845e6e24ad684aef44deaff48 *inst/include/stan/math/mix.hpp
 1da6bdda1bde9133efb775496a118a91 *inst/include/stan/math/mix/fun.hpp
 b7dd6209dda769cff2ac9269a69509fb *inst/include/stan/math/mix/fun/typedefs.hpp
