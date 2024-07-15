@@ -1,4 +1,4 @@
-dc6bc3c67066aef06ef7d668cb52594b *DESCRIPTION
+e03e0712141bf9ea80a2267e8fb0a7f0 *DESCRIPTION
 e9654ca8e0359948dffe0bb36f0c0f43 *LICENSE
 c154f76504a2c135d15e3a5a519e6034 *NAMESPACE
 40e49061477c07658193faa24f3bd9b0 *R/Flags.R
@@ -8,7 +8,7 @@ c34ecf0a899536555d3179c8ea6b5336 *inst/CITATION
 ddfb7fe84a5f61eaec00c645f5a5c905 *inst/doc/sparselm_stan.hpp
 bd4d01db136f8c0d0fa8fd3e348359bb *inst/doc/stanmath.R
 33c9e17d63127207e090c353b627fc98 *inst/doc/stanmath.Rmd
-c8f0a3f73ee75607b8de0b25b01f2d76 *inst/doc/stanmath.html
+c02c7987fdbb9f89ab21b5a282dc0cbc *inst/doc/stanmath.html
 de4af08eaf10fb0e2af7e7eb9f8b09e0 *inst/include/cvodes/cvodes.h
 cb59c489739b54654b08e559cf2fc55a *inst/include/cvodes/cvodes_bandpre.h
 4bd02b30179012ac4c2ca5f9b9468ec8 *inst/include/cvodes/cvodes_bbdpre.h
@@ -165,7 +165,7 @@ d7e771fb1dc8ebcaca0d8187e02ad9a5 *inst/include/src/stan/model/indexing/rvalue_va
 a1f01f9bee12d07feaedfbd29822ea87 *inst/include/src/stan/model/log_prob_grad.hpp
 a6891a3e3d5e7c8fdf1b709ec86b077b *inst/include/src/stan/model/log_prob_propto.hpp
 ad6e2219fb7bbe59cdc4cd8e93d3eaa9 *inst/include/src/stan/model/model_base.hpp
-1877de7dd664fc181b1f98dd728ff412 *inst/include/src/stan/model/model_base_crtp.hpp
+cc2d0f4420fbd71833b0450bf597e593 *inst/include/src/stan/model/model_base_crtp.hpp
 3bb6175df3b141a208e1a35b3891a19d *inst/include/src/stan/model/model_functional.hpp
 49e624954267d33bfb787d623b9aec8c *inst/include/src/stan/model/model_header.hpp
 0b2e0cb8a3d92e3c18e6530220b4ee3e *inst/include/src/stan/model/prob_grad.hpp
