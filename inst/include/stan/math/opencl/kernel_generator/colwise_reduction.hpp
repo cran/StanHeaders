@@ -26,10 +26,10 @@ namespace internal {
 class colwise_reduction_base {};
 
 /**
- * Determine number of work groups in rows direction that will be run fro
+ * Determine number of work groups in rows direction that will be run for
  * colwise reduction of given size.
- * @param n_rows number of rows of expression to resuce
- * @param n_cols number of columns of expression to resuce
+ * @param n_rows number of rows of expression to reduce
+ * @param n_cols number of columns of expression to reduce
  * @return number of work groups in rows direction
  */
 inline int colwise_reduction_wgs_rows(int n_rows, int n_cols) {
@@ -66,7 +66,7 @@ class colwise_reduction
   using Scalar = typename std::remove_reference_t<T>::Scalar;
   using base = operation_cl<Derived, Scalar, T>;
   using base::var_name_;
-  static const bool require_specific_local_size = true;
+  static constexpr bool require_specific_local_size = true;
 
  protected:
   std::string init_;
@@ -96,10 +96,10 @@ class colwise_reduction
    */
   template <typename T_result>
   kernel_parts get_whole_kernel_parts(
-      std::map<const void*, const char*>& generated,
-      std::map<const void*, const char*>& generated_all, name_generator& ng,
-      const std::string& row_index_name, const std::string& col_index_name,
-      const T_result& result) const {
+      std::unordered_map<const void*, const char*>& generated,
+      std::unordered_map<const void*, const char*>& generated_all,
+      name_generator& ng, const std::string& row_index_name,
+      const std::string& col_index_name, const T_result& result) const {
     kernel_parts parts = derived().get_kernel_parts(
         generated, generated_all, ng, row_index_name, col_index_name, false);
     kernel_parts out_parts = result.get_kernel_parts_lhs(

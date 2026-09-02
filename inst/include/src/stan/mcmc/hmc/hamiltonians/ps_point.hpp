@@ -3,7 +3,6 @@
 
 #include <stan/callbacks/writer.hpp>
 #include <stan/math/prim/fun/Eigen.hpp>
-#include <boost/lexical_cast.hpp>
 #include <string>
 #include <vector>
 
@@ -25,7 +24,7 @@ class ps_point {
 
   virtual inline void get_param_names(std::vector<std::string>& model_names,
                                       std::vector<std::string>& names) {
-    names.reserve(q.size() + p.size() + g.size());
+    names.reserve(names.size() + q.size() + p.size() + g.size());
     for (int i = 0; i < q.size(); ++i)
       names.emplace_back(model_names[i]);
     for (int i = 0; i < p.size(); ++i)
@@ -35,7 +34,7 @@ class ps_point {
   }
 
   virtual inline void get_params(std::vector<double>& values) {
-    values.reserve(q.size() + p.size() + g.size());
+    values.reserve(values.size() + q.size() + p.size() + g.size());
     for (int i = 0; i < q.size(); ++i)
       values.push_back(q[i]);
     for (int i = 0; i < p.size(); ++i)

@@ -8,6 +8,7 @@
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
+#include <boost/math/distributions/normal.hpp>
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -17,6 +18,8 @@ namespace stan {
 namespace analyze {
 
 /**
+ * \deprecated use `rhat` instead
+ *
  * Computes the potential scale reduction (Rhat) for the specified
  * parameter across all kept samples.
  *
@@ -35,6 +38,9 @@ inline double compute_potential_scale_reduction(
     std::vector<const double*> draws, std::vector<size_t> sizes) {
   int num_chains = sizes.size();
   size_t num_draws = sizes[0];
+  if (num_draws == 0) {
+    return std::numeric_limits<double>::quiet_NaN();
+  }
   for (int chain = 1; chain < num_chains; ++chain) {
     num_draws = std::min(num_draws, sizes[chain]);
   }
@@ -94,11 +100,12 @@ inline double compute_potential_scale_reduction(
                        * num_chains / (num_chains - 1);
   double var_within = chain_var.mean();
 
-  // rewrote [(n-1)*W/n + B/n]/W as (n-1+ B/W)/n
   return sqrt((var_between / var_within + num_draws - 1) / num_draws);
 }
 
 /**
+ * \deprecated use split_rank_normalized_rhat instead
+ *
  * Computes the potential scale reduction (Rhat) for the specified
  * parameter across all kept samples.
  *
@@ -122,6 +129,8 @@ inline double compute_potential_scale_reduction(
 }
 
 /**
+ * \deprecated use split_rank_normalized_rhat instead
+ *
  * Computes the split potential scale reduction (Rhat) for the
  * specified parameter across all kept samples.  When the number of
  * total draws N is odd, the (N+1)/2th draw is ignored.
@@ -154,6 +163,8 @@ inline double compute_split_potential_scale_reduction(
 }
 
 /**
+ * \deprecated use split_rank_normalized_rhat instead
+ *
  * Computes the split potential scale reduction (Rhat) for the
  * specified parameter across all kept samples.  When the number of
  * total draws N is odd, the (N+1)/2th draw is ignored.

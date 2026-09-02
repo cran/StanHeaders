@@ -5,6 +5,7 @@
 #include <stan/math/prim.hpp>
 #include <stan/analyze/mcmc/compute_effective_sample_size.hpp>
 #include <stan/analyze/mcmc/compute_potential_scale_reduction.hpp>
+#include <stan/analyze/mcmc/split_rank_normalized_rhat.hpp>
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
@@ -13,8 +14,6 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include <boost/accumulators/statistics/covariance.hpp>
 #include <boost/accumulators/statistics/variates/covariate.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
-#include <boost/random/additive_combine.hpp>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -44,7 +43,7 @@ using Eigen::Dynamic;
  *
  * <p><b>Storage Order</b>: Storage is column/last-index major.
  */
-template <class RNG = boost::random::ecuyer1988>
+template <typename Unused = void*>
 class chains {
  private:
   std::vector<std::string> param_names_;
@@ -560,7 +559,6 @@ class chains {
     return autocovariance(chain, index(name));
   }
 
-  // FIXME: reimplement using autocorrelation.
   double effective_sample_size(const int index) const {
     int n_chains = num_chains();
     std::vector<const double*> draws(n_chains);
@@ -590,6 +588,7 @@ class chains {
           = samples_(chain).col(index).bottomRows(n_kept_samples).data();
       sizes[chain] = n_kept_samples;
     }
+
     return analyze::compute_split_effective_sample_size(draws, sizes);
   }
 
@@ -614,6 +613,26 @@ class chains {
 
   double split_potential_scale_reduction(const std::string& name) const {
     return split_potential_scale_reduction(index(name));
+  }
+
+  std::pair<double, double> split_potential_scale_reduction_rank(
+      const int index) const {
+    int n_chains = num_chains();
+    int n_kept_samples = std::numeric_limits<int>::max();
+    for (size_t i = 0; i < n_chains; ++i) {
+      n_kept_samples = std::min(n_kept_samples, num_kept_samples(i));
+    }
+    Eigen::MatrixXd chains(n_kept_samples, n_chains);
+    for (size_t i = 0; i < n_chains; ++i) {
+      auto bottom_rows = samples_(i).col(index).bottomRows(n_kept_samples);
+      chains.col(i) = bottom_rows.eval();
+    }
+    return analyze::split_rank_normalized_rhat(chains);
+  }
+
+  std::pair<double, double> split_potential_scale_reduction_rank(
+      const std::string& name) const {
+    return split_potential_scale_reduction_rank(index(name));
   }
 };
 

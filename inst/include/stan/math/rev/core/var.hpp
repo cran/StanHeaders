@@ -366,19 +366,44 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   var_value(S&& x) : vi_(new vari_type(std::forward<S>(x), false)) {}  // NOLINT
 
   /**
-   * Copy constructor for var_val.
-   * @tparam S type of the value in the `var_value` to assing
+   * Copy constructor for var_val when the vari_type from `other` is directly
+   * assignable.
+   * @tparam S type of the value in the `var_value` to assign
    * @param other the value to assign
    * @return this
    */
-  template <typename S, require_assignable_t<value_type, S>* = nullptr,
+  template <typename S,
+            require_assignable_t<vari_type,
+                                 typename var_value<S>::vari_type>* = nullptr,
             require_all_plain_type_t<T, S>* = nullptr>
   var_value(const var_value<S>& other) : vi_(other.vi_) {}
 
   /**
+   * Construct from a `var_value` with different inner `vari_type`
+   * @tparam S An eigen type that is not the same as `T`, but can be assigned to
+   * `vari_value<T>`.
+   * @param other the value to assign
+   * @note This constructor is for types such as
+   * `vari_value<Matrix<double, -1, 1>>` and
+   * `vari_value<Matrix<double, 1, -1>>`. As pointers those are not
+   * assignable to one another, but their inner matrix types are. So the `var`
+   * has to make a new `vari` and assign the inner matrices to that new `vari`.
+   */
+  template <typename S,
+            require_not_assignable_t<
+                vari_type, typename var_value<S>::vari_type>* = nullptr,
+            require_constructible_t<vari_type, S>* = nullptr,
+            require_all_plain_type_t<T, S>* = nullptr>
+  var_value(const var_value<S>& other) : vi_(new vari_type(other.vi_->val_)) {
+    reverse_pass_callback([this_vi = this->vi_, other_vi = other.vi_]() {
+      other_vi->adj_ += this_vi->adj_;
+    });
+  }
+
+  /**
    * Construct a `var_value` with a plain type
    *  from another `var_value` containing an expression.
-   * @tparam S type of the value in the `var_value` to assing
+   * @tparam S type of the value in the `var_value` to assign
    * @param other the value to assign
    * @return this
    */
@@ -396,7 +421,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   /**
    * Construct a `var_value` with premade @ref arena_matrix types.
    *  The values and adjoint matrices passed here will be shallow copied.
-   * @tparam S type of the value in the `var_value` to assing
+   * @tparam S type of the value in the `var_value` to assign
    * @param val The value matrix to go into the vari
    * @param adj the adjoint matrix to go into the vari
    */
@@ -714,7 +739,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   /**
    * View element of eigen matrices. This creates a new
    * vari_value<double> so unlike the other views this subset will not
-   * have the same adjoints as the original matrix and must be propogated
+   * have the same adjoints as the original matrix and must be propagated
    * back.
    * @param i Element to access
    */
@@ -738,7 +763,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   /**
    * View element of eigen matrices. This creates a new
    * vari_value<double> so unlike the other views this subset will not
-   * have the same adjoints as the original matrix and must be propogated
+   * have the same adjoints as the original matrix and must be propagated
    * back.
    * @param i Row to access
    * @param j Column to access
@@ -763,7 +788,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   /**
    * View element of eigen matrices. This creates a new
    * vari_value<double> so unlike the other views this subset will not
-   * have the same adjoints as the original matrix and must be propogated
+   * have the same adjoints as the original matrix and must be propagated
    * back.
    * @param i Element to access
    */
@@ -773,7 +798,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   /**
    * View element of eigen matrices. This creates a new
    * vari_value<double> so unlike the other views this subset will not
-   * have the same adjoints as the original matrix and must be propogated
+   * have the same adjoints as the original matrix and must be propagated
    * back.
    * @param i Row to access
    * @param j Column to access
@@ -788,7 +813,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   /**
    * View element of eigen matrices. This creates a new
    * vari_value<double> so unlike the other views this subset will not
-   * have the same adjoints as the original matrix and must be propogated
+   * have the same adjoints as the original matrix and must be propagated
    * back.
    * @param i Element to access
    */
@@ -798,7 +823,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   /**
    * View element of eigen matrices. This creates a new
    * vari_value<double> so unlike the other views this subset will not
-   * have the same adjoints as the original matrix and must be propogated
+   * have the same adjoints as the original matrix and must be propagated
    * back.
    * @param i Row to access
    * @param j Column to access
@@ -1011,7 +1036,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   /**
    * Assignment of another plain var value, when this also contains a plain
    * type.
-   * @tparam S type of the value in the `var_value` to assing
+   * @tparam S type of the value in the `var_value` to assign
    * @param other the value to assign
    * @return this
    */
@@ -1032,9 +1057,10 @@ class var_value<T, internal::require_matrix_var_value<T>> {
    * @param other the value to assign
    * @return this
    */
-  template <typename S, require_assignable_t<value_type, S>* = nullptr,
-            require_all_plain_type_t<T, S>* = nullptr,
-            require_not_same_t<plain_type_t<T>, plain_type_t<S>>* = nullptr>
+  template <typename S, typename T_ = T,
+            require_assignable_t<value_type, S>* = nullptr,
+            require_all_plain_type_t<T_, S>* = nullptr,
+            require_not_same_t<plain_type_t<T_>, plain_type_t<S>>* = nullptr>
   inline var_value<T>& operator=(const var_value<S>& other) {
     static_assert(
         EIGEN_PREDICATE_SAME_MATRIX_SIZE(T, S),
@@ -1044,16 +1070,65 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   }
 
   /**
-   * Assignment of another var value, when either this or the other one does not
+   * Assignment of another var value, when the `this` does not
    * contain a plain type.
-   * @tparam S type of the value in the `var_value` to assing
+   * @tparam S type of the value in the `var_value` to assign
    * @param other the value to assign
    * @return this
    */
   template <typename S, typename T_ = T,
             require_assignable_t<value_type, S>* = nullptr,
-            require_any_not_plain_type_t<T_, S>* = nullptr>
+            require_not_plain_type_t<S>* = nullptr,
+            require_plain_type_t<T_>* = nullptr>
   inline var_value<T>& operator=(const var_value<S>& other) {
+    // If vi_ is nullptr then the var needs initialized via copy constructor
+    if (!(this->vi_)) {
+      *this = var_value<T>(other);
+      return *this;
+    }
+    arena_t<plain_type_t<T>> prev_val(vi_->val_.rows(), vi_->val_.cols());
+    prev_val.deep_copy(vi_->val_);
+    vi_->val_.deep_copy(other.val());
+    // no need to change any adjoints - these are just zeros before the reverse
+    // pass
+
+    reverse_pass_callback(
+        [this_vi = this->vi_, other_vi = other.vi_, prev_val]() mutable {
+          this_vi->val_.deep_copy(prev_val);
+
+          // we have no way of detecting aliasing between this->vi_->adj_ and
+          // other.vi_->adj_, so we must copy adjoint before resetting to zero
+
+          // we can reuse prev_val instead of allocating a new matrix
+          prev_val.deep_copy(this_vi->adj_);
+          this_vi->adj_.setZero();
+          other_vi->adj_ += prev_val;
+        });
+    return *this;
+  }
+  /**
+   * Assignment of another var value, when either both `this` or other does not
+   * contain a plain type.
+   * @note Here we do not need to use `deep_copy` as the `var_value`'s
+   * inner `vari_type` holds a view which will call the assignment operator
+   *  that does not perform a placement new.
+   * @tparam S type of the value in the `var_value` to assign
+   * @param other the value to assign
+   * @return this
+   */
+  template <typename S, typename T_ = T,
+            require_assignable_t<value_type, S>* = nullptr,
+            require_not_plain_type_t<T_>* = nullptr>
+  inline var_value<T>& operator=(const var_value<S>& other) {
+    // If vi_ is nullptr then the var needs initialized via copy constructor
+    if (!(this->vi_)) {
+      []() STAN_COLD_PATH {
+        throw std::domain_error(
+            "var_value<matrix>::operator=(var_value<expression>):"
+            " Internal Bug! Please report this with an example"
+            " of your model to the Stan math github repository.");
+      }();
+    }
     arena_t<plain_type_t<T>> prev_val = vi_->val_;
     vi_->val_ = other.val();
     // no need to change any adjoints - these are just zeros before the reverse
@@ -1064,7 +1139,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
           this_vi->val_ = prev_val;
 
           // we have no way of detecting aliasing between this->vi_->adj_ and
-          // other.vi_->adj_, so we must copy adjoint before reseting to zero
+          // other.vi_->adj_, so we must copy adjoint before resetting to zero
 
           // we can reuse prev_val instead of allocating a new matrix
           prev_val = this_vi->adj_;
@@ -1108,7 +1183,7 @@ class var_value<T, internal::require_matrix_var_value<T>> {
   }
 };
 
-// For backwards compatability the default value is double
+// For backwards compatibility the default value is double
 using var = var_value<double>;
 
 }  // namespace math

@@ -2,21 +2,38 @@
 #define STAN_MATH_REV_FUN_CSR_MATRIX_TIMES_VECTOR_HPP
 
 #include <stan/math/prim/fun/Eigen.hpp>
-#include <stan/math/rev/fun/to_soa_sparse_matrix.hpp>
 #include <stan/math/rev/core.hpp>
+#include <stan/math/rev/fun/to_soa_sparse_matrix.hpp>
 #include <stan/math/prim/err.hpp>
 #include <stan/math/prim/fun/csr_u_to_z.hpp>
+#include <stan/math/prim/fun/csr_matrix_times_vector.hpp>
 #include <vector>
 
 namespace stan {
 namespace math {
 
 namespace internal {
+/**
+ * `vari` for csr_matrix_times_vector
+ * @note `csr_matrix_times_vector` uses the old inheritance
+ *  style to set up the reverse pass because of a linking
+ *  issue on windows when using flto.
+ *
+ * @tparam Result_ Either a type inheriting from `Eigen::DenseBase` with scalar
+ * type `var` or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+ * @tparam WMat_ Either a type inheriting from `Eigen::DenseBase` with scalar
+ * type `var` or `double`. Or a `var<T>` where `T` inherits from
+ * `Eigen::SparseBase`
+ * @tparam B_ Either a type inheriting from `Eigen::DenseBase` with scalar type
+ * `var` or `double`. Or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+ *
+ */
 template <typename Result_, typename WMat_, typename B_>
 struct csr_adjoint : public vari {
   std::decay_t<Result_> res_;
   std::decay_t<WMat_> w_mat_;
   std::decay_t<B_> b_;
+
   template <typename T1, typename T2, typename T3>
   csr_adjoint(T1&& res, T2&& w_mat, T3&& b)
       : vari(0.0),
@@ -25,33 +42,86 @@ struct csr_adjoint : public vari {
         b_(std::forward<T3>(b)) {}
 
   void chain() { chain_internal(res_, w_mat_, b_); }
+
+  /**
+   * Overload for calculating adjoints of `w_mat` and `b`
+   * @tparam Result Either a type inheriting from `Eigen::DenseBase` with scalar
+   * type `var` or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+   * @tparam WMat Either a type inheriting from `Eigen::DenseBase` with scalar
+   * type `var`. Or a `var<T>` where `T` inherits from `Eigen::SparseBase`
+   * @tparam B Either a type inheriting from `Eigen::DenseBase` with scalar type
+   * `var`. Or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+   * @param res The vector result of the forward pass calculation
+   * @param w_mat A sparse matrix
+   * @param b A vector
+   */
   template <typename Result, typename WMat, typename B,
             require_rev_matrix_t<WMat>* = nullptr,
             require_rev_matrix_t<B>* = nullptr>
-  void chain_internal(Result&& res, WMat&& w_mat, B&& b) {
+  inline void chain_internal(Result&& res, WMat&& w_mat, B&& b) {
     w_mat.adj() += res.adj() * b.val().transpose();
     b.adj() += w_mat.val().transpose() * res.adj();
   }
 
+  /**
+   * Overload for calculating adjoints of `w_mat`
+   * @tparam Result Either a type inheriting from `Eigen::DenseBase` with scalar
+   * type `var` or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+   * @tparam WMat Either a type inheriting from `Eigen::DenseBase` with scalar
+   * type `var`. Or a `var<T>` where `T` inherits from `Eigen::SparseBase`
+   * @tparam B Either a type inheriting from `Eigen::DenseBase` with scalar type
+   * `double`
+   * @param res The vector result of the forward pass calculation
+   * @param w_mat A sparse matrix
+   * @param b A vector
+   */
   template <typename Result, typename WMat, typename B,
             require_rev_matrix_t<WMat>* = nullptr,
             require_not_rev_matrix_t<B>* = nullptr>
-  void chain_internal(Result&& res, WMat&& w_mat, B&& b) {
+  inline void chain_internal(Result&& res, WMat&& w_mat, B&& b) {
     w_mat.adj() += res.adj() * b.transpose();
   }
 
+  /**
+   * Overload for calculating adjoints of `b`
+   * @tparam Result Either a type inheriting from `Eigen::DenseBase` with scalar
+   * type `var` or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+   * @tparam WMat Either a type inheriting from `Eigen::DenseBase` with scalar
+   * type `double`
+   * @tparam B Either a type inheriting from `Eigen::DenseBase` with scalar type
+   * `var` or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+   * @param res The vector result of the forward pass calculation
+   * @param w_mat A sparse matrix
+   * @param b A vector
+   */
   template <typename Result, typename WMat, typename B,
             require_not_rev_matrix_t<WMat>* = nullptr,
             require_rev_matrix_t<B>* = nullptr>
-  void chain_internal(Result&& res, WMat&& w_mat, B&& b) {
+  inline void chain_internal(Result&& res, WMat&& w_mat, B&& b) {
     b.adj() += w_mat.transpose() * res.adj();
   }
 };
+
+/**
+ * Helper function to construct the csr_adjoint struct.
+ * @tparam Result_ Either a type inheriting from `Eigen::DenseBase` with scalar
+ * type `var` or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+ * @tparam WMat_ Either a type inheriting from `Eigen::DenseBase` with scalar
+ * type `var` or `double`. Or a `var<T>` where `T` inherits from
+ * `Eigen::SparseBase`
+ * @tparam B_ Either a type inheriting from `Eigen::DenseBase` with scalar type
+ * `var` or `double`. Or a `var<T>` where `T` inherits from `Eigen::DenseBase`
+ *
+ * @param res The vector result of the forward pass calculation
+ * @param w_mat A sparse matrix
+ * @param b A vector
+ */
 template <typename Result_, typename WMat_, typename B_>
-inline vari* make_csr_adjoint(Result_&& res, WMat_&& w_mat, B_&& b) {
-  return new csr_adjoint<Result_, WMat_, B_>(std::forward<Result_>(res),
-                                             std::forward<WMat_>(w_mat),
-                                             std::forward<B_>(b));
+inline void make_csr_adjoint(Result_&& res, WMat_&& w_mat, B_&& b) {
+  new csr_adjoint<std::decay_t<Result_>, std::decay_t<WMat_>, std::decay_t<B_>>(
+      std::forward<Result_>(res), std::forward<WMat_>(w_mat),
+      std::forward<B_>(b));
+  return;
 }
 }  // namespace internal
 
@@ -113,14 +183,14 @@ inline auto csr_matrix_times_vector(int m, int n, const T1& w,
                  [](auto&& x) { return x - 1; });
   using sparse_var_value_t
       = var_value<Eigen::SparseMatrix<double, Eigen::RowMajor>>;
-  if (!is_constant<T2>::value && !is_constant<T1>::value) {
+  if constexpr (is_autodiff_v<T2> && is_autodiff_v<T1>) {
     arena_t<promote_scalar_t<var, T2>> b_arena = b;
     sparse_var_value_t w_mat_arena
         = to_soa_sparse_matrix<Eigen::RowMajor>(m, n, w, u_arena, v_arena);
     arena_t<return_t> res = w_mat_arena.val() * value_of(b_arena);
     stan::math::internal::make_csr_adjoint(res, w_mat_arena, b_arena);
     return return_t(res);
-  } else if (!is_constant<T2>::value) {
+  } else if constexpr (is_autodiff_v<T2>) {
     arena_t<promote_scalar_t<var, T2>> b_arena = b;
     auto w_val_arena = to_arena(value_of(w));
     sparse_val_mat w_val_mat(m, n, w_val_arena.size(), u_arena.data(),

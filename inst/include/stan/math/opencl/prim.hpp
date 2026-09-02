@@ -62,7 +62,7 @@
  * `C` and `D`. When executing `C`'s operation, `A` and `B` are assigned
  * events to their read event stack while `C` is assigned an event to it's write
  *event stack. Once `A` and `B` have finished their write event the kernel to
- *compute `C` can begin. The excution to create `D` also waits for the write
+ *compute `C` can begin. The execution to create `D` also waits for the write
  *events of `A` and `B`, but does not have to wait for the execution of `C` to
  *finish. Executing `E` requires waiting for for the write events of both `C`
  *and `D`.
@@ -99,6 +99,8 @@
 #include <stan/math/opencl/zeros_strict_tri.hpp>
 #include <stan/math/opencl/qr_decomposition.hpp>
 
+#include <stan/math/opencl/prim_constraint.hpp>
+
 #include <stan/math/opencl/prim/add_diag.hpp>
 #include <stan/math/opencl/prim/append_array.hpp>
 #include <stan/math/opencl/prim/bernoulli_cdf.hpp>
@@ -112,6 +114,7 @@
 #include <stan/math/opencl/prim/beta_proportion_lpdf.hpp>
 #include <stan/math/opencl/prim/binomial_logit_lpmf.hpp>
 #include <stan/math/opencl/prim/binomial_lpmf.hpp>
+#include <stan/math/opencl/prim/binomial_logit_glm_lpmf.hpp>
 #include <stan/math/opencl/prim/block.hpp>
 #include <stan/math/opencl/prim/categorical_logit_glm_lpmf.hpp>
 #include <stan/math/opencl/prim/cauchy_cdf.hpp>
@@ -171,7 +174,6 @@
 #include <stan/math/opencl/prim/inv_cloglog.hpp>
 #include <stan/math/opencl/prim/inv_gamma_lpdf.hpp>
 #include <stan/math/opencl/prim/inv_sqrt.hpp>
-#include <stan/math/opencl/prim/lb_constrain.hpp>
 #include <stan/math/opencl/prim/log_mix.hpp>
 #include <stan/math/opencl/prim/log_softmax.hpp>
 #include <stan/math/opencl/prim/logistic_cdf.hpp>
@@ -183,7 +185,6 @@
 #include <stan/math/opencl/prim/lognormal_lccdf.hpp>
 #include <stan/math/opencl/prim/lognormal_lcdf.hpp>
 #include <stan/math/opencl/prim/lognormal_lpdf.hpp>
-#include <stan/math/opencl/prim/lub_constrain.hpp>
 #include <stan/math/opencl/prim/matrix_power.hpp>
 #include <stan/math/opencl/prim/mdivide_left_tri_low.hpp>
 #include <stan/math/opencl/prim/mdivide_right_tri_low.hpp>
@@ -200,7 +201,6 @@
 #include <stan/math/opencl/prim/normal_lcdf.hpp>
 #include <stan/math/opencl/prim/normal_lpdf.hpp>
 #include <stan/math/opencl/prim/num_elements.hpp>
-#include <stan/math/opencl/prim/offset_multiplier_constrain.hpp>
 #include <stan/math/opencl/prim/ordered_logistic_glm_lpmf.hpp>
 #include <stan/math/opencl/prim/ordered_logistic_lpmf.hpp>
 #include <stan/math/opencl/prim/pareto_cdf.hpp>
@@ -265,12 +265,10 @@
 #include <stan/math/opencl/prim/to_row_vector.hpp>
 #include <stan/math/opencl/prim/to_vector.hpp>
 #include <stan/math/opencl/prim/trace.hpp>
-#include <stan/math/opencl/prim/ub_constrain.hpp>
 #include <stan/math/opencl/prim/uniform_cdf.hpp>
 #include <stan/math/opencl/prim/uniform_lccdf.hpp>
 #include <stan/math/opencl/prim/uniform_lcdf.hpp>
 #include <stan/math/opencl/prim/uniform_lpdf.hpp>
-#include <stan/math/opencl/prim/unit_vector_constrain.hpp>
 #include <stan/math/opencl/prim/variance.hpp>
 #include <stan/math/opencl/prim/weibull_cdf.hpp>
 #include <stan/math/opencl/prim/weibull_lccdf.hpp>

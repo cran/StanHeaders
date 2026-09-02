@@ -3,6 +3,7 @@
 
 #include <stan/callbacks/logger.hpp>
 #include <stan/callbacks/writer.hpp>
+#include <stan/callbacks/structured_writer.hpp>
 #include <stan/mcmc/base_mcmc.hpp>
 #include <stan/mcmc/hmc/hamiltonians/ps_point.hpp>
 #include <boost/random/uniform_01.hpp>
@@ -63,6 +64,17 @@ class base_hmc : public base_mcmc {
     write_sampler_metric(writer);
   }
 
+  /**
+   * write stepsize and elements of mass matrix as a JSON object
+   */
+  void write_sampler_state_struct(callbacks::structured_writer& struct_writer) {
+    struct_writer.begin_record();
+    struct_writer.write("stepsize", get_nominal_stepsize());
+    struct_writer.write("metric_type", z_.metric_type());
+    struct_writer.write("inv_metric", z_.inv_e_metric_);
+    struct_writer.end_record();
+  }
+
   void get_sampler_diagnostic_names(std::vector<std::string>& model_names,
                                     std::vector<std::string>& names) {
     z_.get_param_names(model_names, names);
@@ -80,6 +92,12 @@ class base_hmc : public base_mcmc {
 
   void init_stepsize(callbacks::logger& logger) {
     ps_point z_init(this->z_);
+
+    // step size is meaningless in zero-dimensional space
+    if (this->z_.q.size() == 0) {
+      this->nom_epsilon_ = std::numeric_limits<double>::quiet_NaN();
+      return;
+    }
 
     // Skip initialization for extreme step sizes
     if (this->nom_epsilon_ == 0 || this->nom_epsilon_ > 1e7
@@ -183,7 +201,7 @@ class base_hmc : public base_mcmc {
 
  protected:
   typename Hamiltonian<Model, BaseRNG>::PointType z_;
-  Integrator<Hamiltonian<Model, BaseRNG> > integrator_;
+  Integrator<Hamiltonian<Model, BaseRNG>> integrator_;
   Hamiltonian<Model, BaseRNG> hamiltonian_;
 
   BaseRNG& rand_int_;

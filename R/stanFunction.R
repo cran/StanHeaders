@@ -64,7 +64,7 @@ stanFunction <- function(function_name, ..., env = parent.frame(), rebuild = FAL
                                      paste0("std::vector<int>(", names(types), ".begin(), ",
                                                                  names(types), ".end())"),
                                      ifelse(complex_lists,
-                                            paste0("std::vector<complex<double>(", 
+                                            paste0("std::vector<complex<double>(",
                                                    names(types), ".begin(), ",
                                                    names(types), ".end())"),
                                             names(types)))), collapse = ", "), "); }")
@@ -82,20 +82,20 @@ stanFunction <- function(function_name, ..., env = parent.frame(), rebuild = FAL
     incl <- c(incl, paste0('#include ', dQuote(create_rng)))
     code <- sub(") {", ", const int random_seed = 0) {", code, fixed = TRUE)
     code <- sub(" return ",
-                "boost::ecuyer1988 base_rng__ = stan::services::util::create_rng(random_seed, 0); return ",
+                "boost::random::mixmax base_rng__ = stan::services::util::create_rng(random_seed, 0); return ",
                 code)
       code <- sub("); }", ", base_rng__); }", code, fixed = TRUE)
   }
   withr::with_makevars(
     c(
-      PKG_CXXFLAGS = CxxFlags(as_character = TRUE),
+      PKG_CXXFLAGS = paste(CxxFlags(as_character = TRUE), "-DNEW_RSTAN"),
       PKG_LIBS = LdFlags(as_character = TRUE),
       USE_CXX17 = 1
     ),
-    Rcpp::cppFunction(code, 
+    Rcpp::cppFunction(code,
                       depends = c("StanHeaders", "RcppEigen", "BH"),
                       plugins = "cpp17",
-                      includes = incl, 
+                      includes = incl,
                       env = env, rebuild = rebuild, cacheDir = cacheDir,
                       showOutput = showOutput, verbose = verbose)
   )
@@ -106,4 +106,3 @@ stanFunction <- function(function_name, ..., env = parent.frame(), rebuild = FAL
   }
   return(do.call(function_name, args = DOTS, envir = env))
 }
-

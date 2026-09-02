@@ -18,8 +18,6 @@ namespace util {
 
 /**
  * mcmc_writer writes out headers and samples
- *
- * @tparam Model Model class
  */
 class mcmc_writer {
  private:
@@ -57,6 +55,7 @@ class mcmc_writer {
    * The names are written to the sample_stream as comma separated values
    * with a newline at the end.
    *
+   * @tparam Model Model class
    * @param[in] sample a sample (unconstrained) that works with the model
    * @param[in] sampler a stan::mcmc::base_mcmc object
    * @param[in] model the model
@@ -87,6 +86,8 @@ class mcmc_writer {
    * The samples are written to the sample_stream as comma separated
    * values with a newline at the end.
    *
+   * @tparam Model Model class
+   * @tparam RNG Type of random number generator
    * @param[in,out] rng random number generator (used by
    *   model.write_array())
    * @param[in] sample the sample in constrained space
@@ -110,11 +111,16 @@ class mcmc_writer {
           sample.cont_params().data() + sample.cont_params().size());
       model.write_array(rng, cont_params, params_i, model_values, true, true,
                         &ss);
-    } catch (const std::exception& e) {
+    } catch (const std::domain_error& e) {
       if (ss.str().length() > 0)
         logger_.info(ss);
       ss.str("");
       logger_.info(e.what());
+    } catch (const std::exception& e) {
+      if (ss.str().length() > 0)
+        logger_.info(ss);
+      logger_.info(e.what());
+      throw;
     }
     if (ss.str().length() > 0)
       logger_.info(ss);
@@ -142,6 +148,7 @@ class mcmc_writer {
   /**
    * Print diagnostic names
    *
+   * @tparam Model Model class
    * @param[in] sample unconstrained sample
    * @param[in] sampler sampler
    * @param[in] model model

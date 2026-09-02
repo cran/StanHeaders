@@ -11,7 +11,7 @@ namespace math {
 namespace opencl_kernels {
 
 // \cond
-static const char* eigenvals_bisect_kernel_code = STRINGIFY(
+static constexpr const char* eigenvals_bisect_kernel_code = STRINGIFY(
     // \endcond
 
     /**
@@ -196,13 +196,13 @@ const kernel_cl<in_buffer, in_buffer, in_buffer, in_buffer, out_buffer,
                             eigenvals_bisect_kernel_code});
 
 // \cond
-static const char* get_eigenvectors_kernel_code = STRINGIFY(
+static constexpr const char* get_eigenvectors_kernel_code = STRINGIFY(
     // \endcond
 
     /**
      * Calculates shifted LDL and UDU factorizations. Combined with twist index
      * they form twisted factorization for calculation of an eigenvector
-     * corresponding to eigenvalue that is equal to the shift. Tha algorithm is
+     * corresponding to eigenvalue that is equal to the shift. The algorithm is
      * sometimes called diferential twisted quotient-differences with shifts
      * (dtwqds). L * D * L^T - shift * I = L+ * D+ * L+^T = U- * D- * U-^T D, D+
      * and D- are diagonal, L and L+ are lower unit triangular (diagonal

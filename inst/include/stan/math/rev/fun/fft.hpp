@@ -2,11 +2,10 @@
 #define STAN_MATH_REV_FUN_FFT_HPP
 
 #include <stan/math/prim/fun/Eigen.hpp>
-#include <stan/math/prim/fun/typedefs.hpp>
 #include <stan/math/rev/meta.hpp>
-#include <stan/math/prim/fun/fft.hpp>
+#include <stan/math/prim/fun/typedefs.hpp>
 #include <stan/math/prim/fun/to_complex.hpp>
-#include <Eigen/Dense>
+#include <stan/math/prim/fun/fft.hpp>
 #include <complex>
 #include <type_traits>
 #include <vector>
@@ -147,7 +146,7 @@ inline plain_type_t<M> fft2(const M& x) {
  * ```
  *
  * @tparam M type of complex matrix argument
- * @param[in] y matrix to inverse trnasform
+ * @param[in] y matrix to inverse transform
  * @return inverse discrete 2D Fourier transform of `y`
  */
 template <typename M, require_eigen_dense_dynamic_vt<is_complex, M>* = nullptr,

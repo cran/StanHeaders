@@ -15,7 +15,7 @@ namespace math {
 #define CHECK_KINSOL_CALL(call) kinsol_check(call, #call)
 
 /**
- * Map cvodes error flag to acutally error msg. The most frequent
+ * Map cvodes error flag to actually error msg. The most frequent
  * errors are put at the top. An alternative would be to use std::map
  * but in our case the difference would be negligible. Note that we
  * don't use CVGetReturnFlagName function to retrieve the constant
@@ -23,7 +23,7 @@ namespace math {
  *
  * @param flag
  *
- * @return error msg string constant and actuall informative msg
+ * @return error msg string constant and actually informative msg
  */
 inline std::array<std::string, 2> cvodes_flag_msg(int flag) {
   std::array<std::string, 2> msg;
@@ -57,7 +57,7 @@ inline std::array<std::string, 2> cvodes_flag_msg(int flag) {
       break;  // NOLINT
     case -10:
       msg = {"CV_REPTD_RHSFUNC_ERR",
-             "The right-hand side function had repetead recoverable errors"};
+             "The right-hand side function had repeated recoverable errors"};
       break;  // NOLINT
     case -11:
       msg = {"CV_UNREC_RHSFUNC_ERR",
@@ -129,7 +129,7 @@ inline std::array<std::string, 2> cvodes_flag_msg(int flag) {
           break;  // NOLINT
         case -44:
           msg = {"CV_REPTD_SRHSFUNC_ER",
-                 "The sensitivity ight-hand side function had repetead "
+                 "The sensitivity right-hand side function had repeated "
                  "recoverable errors"};
           break;  // NOLINT
         case -45:
@@ -155,9 +155,9 @@ inline std::array<std::string, 2> cvodes_flag_msg(int flag) {
                  "checkpoint"};
           break;  // NOLINT
         case -106:
-          msg = {
-              "CV_FWD_FAIL",
-              "An error occured during the integration of the forward problem"};
+          msg = {"CV_FWD_FAIL",
+                 "An error occurred during the integration of the forward "
+                 "problem"};
           break;  // NOLINT
         case -107:
           msg = {"CV_BAD_ITASK", "Wrong task for backward integration"};
@@ -176,23 +176,19 @@ inline std::array<std::string, 2> cvodes_flag_msg(int flag) {
 }
 
 /**
- * Throws a std::runtime_error exception when a Sundial function fails
+ * Throws a std::domain_error exception when a Sundial function fails
  * (i.e. returns a negative flag)
  *
  * @param flag Error flag
  * @param func_name Name of the function that returned the flag
- * @throw <code>std::runtime_error</code> if the flag is negative
+ * @throw <code>std::domain_error</code> if the flag is negative
  */
 inline void cvodes_check(int flag, const char* func_name) {
   if (flag < 0) {
     std::ostringstream ss;
     ss << func_name << " failed with error flag " << flag << ": \n"
        << cvodes_flag_msg(flag).at(1) << ".";
-    if (flag == -1 || flag == -4) {
-      throw std::domain_error(ss.str());
-    } else {
-      throw std::runtime_error(ss.str());
-    }
+    throw std::domain_error(ss.str());
   }
 }
 
@@ -368,11 +364,7 @@ inline void idas_check(int flag, const char* func_name) {
     std::ostringstream ss;
     ss << func_name << " failed with error flag " << flag << ": \n"
        << idas_flag_msg(flag).at(1);
-    if (flag == -1 || flag == -4) {
-      throw std::domain_error(ss.str());
-    } else {
-      throw std::runtime_error(ss.str());
-    }
+    throw std::domain_error(ss.str());
   }
 }
 

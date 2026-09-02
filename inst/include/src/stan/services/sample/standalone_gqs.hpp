@@ -63,25 +63,146 @@ int standalone_generate(const Model &model, const Eigen::MatrixXd &draws,
   util::gq_writer writer(sample_writer, logger, p_names.size());
   writer.write_gq_names(model);
 
-  boost::ecuyer1988 rng = util::create_rng(seed, 1);
+  stan::rng_t rng = util::create_rng(seed, 1);
 
   std::vector<double> unconstrained_params_r;
   std::vector<double> row(draws.cols());
+  auto start = std::chrono::steady_clock::now();
 
-  for (size_t i = 0; i < draws.rows(); ++i) {
-    Eigen::Map<Eigen::VectorXd>(&row[0], draws.cols()) = draws.row(i);
-    try {
-      model.unconstrain_array(row, unconstrained_params_r, &msg);
-    } catch (const std::exception &e) {
-      if (msg.str().length() > 0)
-        logger.error(msg);
-      logger.error(e.what());
+  try {
+    for (size_t i = 0; i < draws.rows(); ++i) {
+      Eigen::Map<Eigen::VectorXd>(&row[0], draws.cols()) = draws.row(i);
+      try {
+        model.unconstrain_array(row, unconstrained_params_r, &msg);
+      } catch (const std::exception &e) {
+        if (msg.str().length() > 0)
+          logger.error(msg);
+        logger.error(e.what());
+        return error_codes::DATAERR;
+      }
+      interrupt();  // call out to interrupt and fail
+      writer.write_gq_values(model, rng, unconstrained_params_r);
+    }
+  } catch (const std::exception &e) {
+    logger.error(e.what());
+    return error_codes::SOFTWARE;
+  }
+  auto end = std::chrono::steady_clock::now();
+  double gq_delta_t
+      = std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+            .count()
+        / 1000.0;
+  writer.write_timing(gq_delta_t);
+
+  return error_codes::OK;
+}
+
+/**
+ * Given a set of draws from a fitted model, generate corresponding
+ * quantities of interest which are written to callback writer.
+ * Matrix of draws consists of one row per draw, one column per parameter.
+ * Draws are processed one row at a time.
+ * Return code indicates success or type of error.
+ *
+ * @tparam Model model class
+ * @tparam SampleWriter type of sample writer
+ * @param[in] model instantiated model
+ * @param[in] num_chains number of chains
+ * @param[in] draws standard vector containing sequence of draws of constrained
+ * parameters
+ * @param[in] seed seed to use for randomization
+ * @param[in, out] interrupt called every iteration
+ * @param[in, out] logger logger to which to write warning and error messages
+ * @param[in, out] sample_writers A vector of writers to which draws for each
+ * chain are written
+ * @return error code
+ */
+template <typename Model, typename SampleWriter>
+int standalone_generate(const Model &model, const int num_chains,
+                        const std::vector<Eigen::MatrixXd> &draws,
+                        unsigned int seed, callbacks::interrupt &interrupt,
+                        callbacks::logger &logger,
+                        std::vector<SampleWriter> &sample_writers) {
+  if (num_chains == 1) {
+    return standalone_generate(model, draws[0], seed, interrupt, logger,
+                               sample_writers[0]);
+  }
+
+  std::vector<std::string> p_names;
+  model.constrained_param_names(p_names, false, false);
+  std::vector<std::string> gq_names;
+  model.constrained_param_names(gq_names, false, true);
+  if (!(p_names.size() < gq_names.size())) {
+    logger.error("Model doesn't generate any quantities of interest.");
+    return error_codes::CONFIG;
+  }
+  std::vector<util::gq_writer> writers;
+  writers.reserve(num_chains);
+  std::vector<stan::rng_t> rngs;
+  rngs.reserve(num_chains);
+  for (int i = 0; i < num_chains; ++i) {
+    if (draws[i].size() == 0) {
+      logger.error("Empty set of draws from fitted model.");
       return error_codes::DATAERR;
     }
-    interrupt();  // call out to interrupt and fail
-    writer.write_gq_values(model, rng, unconstrained_params_r);
+    if (p_names.size() != draws[i].cols()) {
+      std::stringstream msg;
+      msg << "Wrong number of parameter values in draws from fitted model.  ";
+      msg << "Expecting " << p_names.size() << " columns, ";
+      msg << "found " << draws[i].cols() << " columns in draws from chain " << i
+          << ".";
+      std::string msgstr = msg.str();
+      logger.error(msgstr);
+      return error_codes::DATAERR;
+    }
+    writers.emplace_back(sample_writers[i], logger, p_names.size());
+    writers[i].write_gq_names(model);
+    rngs.emplace_back(util::create_rng(seed, i + 1));
   }
-  return error_codes::OK;
+  bool error_any = false;
+  try {
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, num_chains, 1),
+        [&draws, &model, &logger, &interrupt, &writers, &rngs,
+         &error_any](const tbb::blocked_range<size_t> &r) {
+          Eigen::VectorXd unconstrained_params_r(draws[0].cols());
+          Eigen::VectorXd row(draws[0].cols());
+          std::stringstream msg;
+          for (size_t slice_idx = r.begin(); slice_idx != r.end();
+               ++slice_idx) {
+            auto start = std::chrono::steady_clock::now();
+            for (size_t i = 0; i < draws[slice_idx].rows(); ++i) {
+              if (error_any)
+                return;
+              try {
+                row = draws[slice_idx].row(i);
+                model.unconstrain_array(row, unconstrained_params_r, &msg);
+              } catch (const std::domain_error &e) {
+                if (msg.str().length() > 0)
+                  logger.error(msg);
+                logger.error(e.what());
+                error_any = true;
+                return;
+              }
+              interrupt();  // call out to interrupt and fail
+              writers[slice_idx].write_gq_values(model, rngs[slice_idx],
+                                                 unconstrained_params_r);
+            }
+            auto end = std::chrono::steady_clock::now();
+            double gq_delta_t
+                = std::chrono::duration_cast<std::chrono::milliseconds>(end
+                                                                        - start)
+                      .count()
+                  / 1000.0;
+            writers[slice_idx].write_timing(gq_delta_t);
+          }
+        },
+        tbb::simple_partitioner());
+  } catch (const std::exception &e) {
+    logger.error(e.what());
+    return error_codes::SOFTWARE;
+  }
+  return error_any ? error_codes::DATAERR : error_codes::OK;
 }
 
 /**

@@ -78,8 +78,8 @@ class check_cl_ : public operation_cl_lhs<check_cl_<T>, bool> {
    * @return part of kernel with code for this and nested expressions
    */
   inline kernel_parts get_kernel_parts_lhs(
-      std::map<const void*, const char*>& generated,
-      std::map<const void*, const char*>& generated_all,
+      std::unordered_map<const void*, const char*>& generated,
+      std::unordered_map<const void*, const char*>& generated_all,
       name_generator& name_gen, const std::string& row_index_name,
       const std::string& col_index_name) const {
     kernel_parts res;
@@ -110,9 +110,10 @@ class check_cl_ : public operation_cl_lhs<check_cl_<T>, bool> {
    * @param[in,out] arg_num consecutive number of the first argument to set.
    * This is incremented for each argument set by this function.
    */
-  inline void set_args(std::map<const void*, const char*>& generated,
-                       std::map<const void*, const char*>& generated_all,
-                       cl::Kernel& kernel, int& arg_num) const {
+  inline void set_args(
+      std::unordered_map<const void*, const char*>& generated,
+      std::unordered_map<const void*, const char*>& generated_all,
+      cl::Kernel& kernel, int& arg_num) const {
     generated[this] = "";
     arg_.set_args(generated, generated_all, kernel, arg_num);
     kernel.setArg(arg_num++, buffer_.buffer());
@@ -141,7 +142,7 @@ class check_cl_ : public operation_cl_lhs<check_cl_<T>, bool> {
 
   /**
    * Adds all write events on any matrices used by nested expression to a list.
-   * Ignores read events anc clears no events.
+   * Ignores read events and clears no events.
    * @param[out] events List of all events.
    */
   inline void get_clear_read_write_events(
@@ -188,7 +189,7 @@ class check_cl_ : public operation_cl_lhs<check_cl_<T>, bool> {
   /**
    * Assignment of a scalar bool triggers the scalar check.
    * @param condition whether the state is ok.
-   * @throws std::domain_error condition is false (chack failed).
+   * @throws std::domain_error condition is false (check failed).
    */
   void operator=(bool condition);  // implemented in multi_result_kernel.hpp
 };

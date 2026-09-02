@@ -3,6 +3,7 @@
 
 #include <stan/callbacks/interrupt.hpp>
 #include <stan/callbacks/logger.hpp>
+#include <stan/callbacks/structured_writer.hpp>
 #include <stan/callbacks/writer.hpp>
 #include <stan/io/var_context.hpp>
 #include <stan/math/prim.hpp>
@@ -11,6 +12,7 @@
 #include <stan/services/util/create_rng.hpp>
 #include <stan/services/util/initialize.hpp>
 #include <stan/services/util/run_adaptive_sampler.hpp>
+#include <iostream>
 #include <vector>
 
 namespace stan {
@@ -55,14 +57,19 @@ int hmc_static_unit_e_adapt(
     double kappa, double t0, callbacks::interrupt& interrupt,
     callbacks::logger& logger, callbacks::writer& init_writer,
     callbacks::writer& sample_writer, callbacks::writer& diagnostic_writer) {
-  boost::ecuyer1988 rng = util::create_rng(random_seed, chain);
+  stan::rng_t rng = util::create_rng(random_seed, chain);
 
   std::vector<int> disc_vector;
-  std::vector<double> cont_vector = util::initialize(
-      model, init, rng, init_radius, true, logger, init_writer);
+  std::vector<double> cont_vector;
 
-  stan::mcmc::adapt_unit_e_static_hmc<Model, boost::ecuyer1988> sampler(model,
-                                                                        rng);
+  try {
+    cont_vector = util::initialize(model, init, rng, init_radius, true, logger,
+                                   init_writer);
+  } catch (const std::exception& e) {
+    logger.error(e.what());
+    return error_codes::CONFIG;
+  }
+  stan::mcmc::adapt_unit_e_static_hmc<Model, stan::rng_t> sampler(model, rng);
   sampler.set_nominal_stepsize_and_T(stepsize, int_time);
   sampler.set_stepsize_jitter(stepsize_jitter);
 
@@ -72,9 +79,16 @@ int hmc_static_unit_e_adapt(
   sampler.get_stepsize_adaptation().set_kappa(kappa);
   sampler.get_stepsize_adaptation().set_t0(t0);
 
-  util::run_adaptive_sampler(
-      sampler, model, cont_vector, num_warmup, num_samples, num_thin, refresh,
-      save_warmup, rng, interrupt, logger, sample_writer, diagnostic_writer);
+  callbacks::structured_writer dummy_metric_writer;
+  try {
+    util::run_adaptive_sampler(sampler, model, cont_vector, num_warmup,
+                               num_samples, num_thin, refresh, save_warmup, rng,
+                               interrupt, logger, sample_writer,
+                               diagnostic_writer, dummy_metric_writer);
+  } catch (const std::exception& e) {
+    logger.error(e.what());
+    return error_codes::SOFTWARE;
+  }
 
   return error_codes::OK;
 }

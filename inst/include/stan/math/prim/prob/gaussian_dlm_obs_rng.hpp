@@ -44,7 +44,7 @@ inline Eigen::VectorXd multi_normal_semidefinite_rng(
 
   Eigen::VectorXd Y
       = mu + (S_ldlt.transpositionsP().transpose() * (S_ldlt.matrixL() * z));
-  // The inner paranthesis matter, transpositionsP() gives a
+  // The inner parenthesis matter, transpositionsP() gives a
   // permutation matrix from pivoting and matrixL() gives a lower
   // triangular matrix. The types cannot be directly multiplied.
 
@@ -92,7 +92,7 @@ inline Eigen::MatrixXd gaussian_dlm_obs_rng(const Eigen::MatrixXd &F,
                                             const Eigen::VectorXd &m0,
                                             const Eigen::MatrixXd &C0,
                                             const int T, RNG &rng) {
-  static const char *function = "gaussian_dlm_obs_rng";
+  static constexpr const char *function = "gaussian_dlm_obs_rng";
 
   int r = F.cols();  // number of variables
   int n = G.rows();  // number of states
